@@ -1,0 +1,54 @@
+/// <reference types="vite/client" />
+import type {
+  Meeting,
+  MeetingSummary,
+  ModelDownloadProgress,
+  Settings,
+  TranscriptSegment,
+  WhisperStatus
+} from '@shared/types'
+
+export type EventChannel =
+  | 'transcript:segment'
+  | 'transcript:error'
+  | 'recording:finalized'
+  | 'enhance:delta'
+  | 'enhance:done'
+  | 'enhance:error'
+  | 'whisper:downloadProgress'
+
+export interface MuesliApi {
+  meetings: {
+    list: () => Promise<MeetingSummary[]>
+    get: (id: string) => Promise<Meeting | null>
+    create: () => Promise<Meeting>
+    update: (id: string, patch: Partial<Meeting>) => Promise<Meeting | null>
+    delete: (id: string) => Promise<void>
+  }
+  recording: {
+    start: (meetingId: string) => Promise<WhisperStatus>
+    sendAudio: (chunk: ArrayBuffer) => void
+    stop: () => Promise<Meeting | null>
+  }
+  enhance: {
+    run: (meetingId: string) => Promise<void>
+    cancel: (meetingId: string) => Promise<void>
+  }
+  settings: {
+    get: () => Promise<Settings>
+    set: (patch: Partial<Settings>) => Promise<Settings>
+  }
+  whisper: {
+    status: () => Promise<WhisperStatus>
+    downloadModel: () => Promise<WhisperStatus>
+  }
+  on: (channel: EventChannel, listener: (...args: never[]) => void) => () => void
+}
+
+declare global {
+  interface Window {
+    muesli: MuesliApi
+  }
+}
+
+export type { Meeting, MeetingSummary, ModelDownloadProgress, Settings, TranscriptSegment, WhisperStatus }
