@@ -4,16 +4,26 @@
 
 <h1 align="center">Scribe</h1>
 
-<p align="center"><strong>Open-source AI meeting notes.</strong> Local transcription. Bring your own key. Any model.</p>
+<p align="center"><strong>AI meeting notes that answer to you, not a server.</strong><br/>Free. Open source. Runs on your Mac.</p>
 
-Record a meeting, take rough notes while you talk, and let AI merge them with the transcript into polished notes — the [Granola](https://granola.ai) workflow, but open source and local-first. Like the grains in the logo: your notes and the transcript are stronger together.
+## You're in control
 
-- **Local transcription** — audio is transcribed on your machine with [whisper.cpp](https://github.com/ggerganov/whisper.cpp). Your recordings never leave your laptop.
-- **Your notes stay yours** — everything is stored as plain JSON + WAV on disk. No accounts, no backend, no sync servers.
-- **Bring your own key 🔑** — no subscription, no middleman markup. Plug in one [Concentrate AI](https://concentrate.ai) key and get 150+ models through a single door — Claude, GPT, Gemini, and everything else in the [model fortress](https://concentrate.ai/models). Switch models from a dropdown right in the app. **No budget? Concentrate serves `gpt-oss-120b` for free**, so you can run Scribe end-to-end at $0.
-- **Ask your notes 💬** — a built-in chat that answers questions across every meeting you've captured ("what did I promise last week?"), grounded in your notes library.
-- **Make it yours** — dark/light liquid-glass themes, six accent colors, and font packs (System, Typewriter, Monospace, Serif), all in Settings.
-- **Text-only egress** — enhancement and chat are the only steps that call an external API, and they send text, never audio.
+Your meetings are some of the most sensitive information you produce — who you talked to, what was promised, what you really think. Scribe's position is simple: **that information belongs on your machine, under your control.**
+
+- **Recording and transcription happen locally.** Audio is captured and transcribed on your Mac with whisper.cpp. No audio is ever uploaded, to us or anyone — there is no "us"; Scribe has no servers, no accounts, no telemetry.
+- **Your data is just files.** Every meeting is plain JSON + WAV on your disk. Read them, back them up, grep them, delete them. No export button needed because nothing was ever taken from you.
+- **Free, forever.** Scribe is MIT-licensed open source. No subscription, no seat pricing, no premium tier. The only cost is the AI you choose to use — and even that can be $0.
+- **You choose the AI — or none.** Enhancement is bring-your-own-key through [Concentrate AI](https://concentrate.ai), and it sends text only, never audio.
+
+Record a meeting, type rough fragments while you talk, and when you hit Stop, AI merges your notes with the transcript into polished, structured notes — like the grains in the logo: stronger together.
+
+## What it does
+
+- **Live local transcription** — [whisper.cpp](https://github.com/ggerganov/whisper.cpp) turns speech to text on-device while the meeting runs.
+- **Auto-notes** — the moment a recording stops, your fragments + the transcript become clean structured notes (summary, decisions, action items), the meeting titles itself, and notes refer to you by name.
+- **Ask your notes 💬** — built-in chat over every meeting you've captured: "what did I promise last week?"
+- **One key, 150+ models 🔑** — powered by [Concentrate AI](https://concentrate.ai), the cleanest way we've found to be model-agnostic: one API key, one endpoint, and Claude, GPT, Gemini plus 150 more in their [model fortress](https://concentrate.ai/models), swappable from a dropdown in the app. Their free `gpt-oss-120b` tier means Scribe runs end-to-end at **$0**.
+- **Make it yours** — dark/light liquid-glass themes, six accent colors, four font packs.
 
 ## How it works
 
@@ -67,12 +77,16 @@ Then create a meeting and hit Record.
 
 No database, no server, no native modules, zero runtime npm dependencies in the main process — the only binary dependency is `whisper-cli`, discovered on `PATH`/Homebrew or configurable in Settings.
 
-## Roadmap
+## Where this is going
 
-Scribe is meant to grow into a full open meeting workspace. Rough order:
+Meetings are just the start. Future releases will plug Scribe into **Outlook, Google Calendar & Gmail, Apple Calendar & Notes, Zoom, Meet, and Teams** — growing it into an **ecosystem agent that keeps track of your life**: it knows what's coming up, captures what happened, remembers what was promised, and answers for all of it. Same rules as today: local-first, your keys, your files, free.
+
+Rough order:
 
 - [ ] **System audio capture** (macOS ScreenCaptureKit helper) — hear both sides of a call
-- [ ] Calendar integration — auto-create meetings from your calendar, attach attendees
+- [ ] Calendar + mail integration (Outlook, Google, Apple) — meetings appear before they start, attendees attached
+- [ ] Zoom / Meet / Teams awareness — know what call you're on, capture both sides
+- [ ] The ecosystem agent — one place that tracks commitments, people, and follow-ups across your life
 - [ ] Note templates (1:1s, pitches, standups, user interviews)
 - [x] Ask-your-meetings chat (Q&A across all your notes)
 - [ ] Speaker diarization
