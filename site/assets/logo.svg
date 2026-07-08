@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="-50 -50 100 100" fill="#5ee0c4">
+  <!-- Muesli: grains together — together we're stronger -->
+  <path transform="rotate(0) translate(0 -24)" d="M0,-20 C8,-13 9,10 0,20 C-9,10 -8,-13 0,-20 Z"/>
+  <path transform="rotate(51.43) translate(0 -24)" d="M0,-20 C8,-13 9,10 0,20 C-9,10 -8,-13 0,-20 Z"/>
+  <path transform="rotate(102.86) translate(0 -24)" d="M0,-20 C8,-13 9,10 0,20 C-9,10 -8,-13 0,-20 Z"/>
+  <path transform="rotate(154.29) translate(0 -24)" d="M0,-20 C8,-13 9,10 0,20 C-9,10 -8,-13 0,-20 Z"/>
+  <path transform="rotate(205.71) translate(0 -24)" d="M0,-20 C8,-13 9,10 0,20 C-9,10 -8,-13 0,-20 Z"/>
+  <path transform="rotate(257.14) translate(0 -24)" d="M0,-20 C8,-13 9,10 0,20 C-9,10 -8,-13 0,-20 Z"/>
+  <path transform="rotate(308.57) translate(0 -24)" d="M0,-20 C8,-13 9,10 0,20 C-9,10 -8,-13 0,-20 Z"/>
+  <circle r="7.5"/>
+</svg>

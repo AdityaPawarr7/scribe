@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Scribe — AI meeting notes that answer to you, not a server</title>
+<meta name="description" content="Free, open-source AI meeting notes for Mac. Local transcription with whisper.cpp, auto-generated notes, chat over your meeting library. Your machine, your keys, your files." />
+<meta property="og:title" content="Scribe — your meetings, your machine, your notes" />
+<meta property="og:description" content="Free, open-source AI meeting notes that run locally on your Mac. Audio never leaves your machine." />
+<meta property="og:image" content="assets/hero.png" />
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  :root {
+    --bg: #0d0e0d;
+    --text: rgba(255, 255, 255, 0.94);
+    --dim: rgba(255, 255, 255, 0.56);
+    --faint: rgba(255, 255, 255, 0.34);
+    --accent: #5ee0c4;
+    --glass-1: rgba(255, 255, 255, 0.045);
+    --glass-2: rgba(255, 255, 255, 0.09);
+    --stroke: rgba(255, 255, 255, 0.1);
+    --stroke-strong: rgba(255, 255, 255, 0.2);
+    --specular: inset 0 1px 1px rgba(255,255,255,.25), inset 0 -1px 1px rgba(255,255,255,.05),
+                inset 1px 0 1px rgba(255,255,255,.08), inset -1px 0 1px rgba(255,255,255,.08);
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+    line-height: 1.55;
+    overflow-x: hidden;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  /* ---- aurora ---- */
+  .aurora { position: fixed; inset: 0; z-index: -2; overflow: hidden; }
+  .blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: .5; }
+  .blob.b1 { width: 60vw; height: 60vw; background: radial-gradient(circle, #134f43, transparent 65%); top: -25vw; left: -12vw; animation: drift1 26s ease-in-out infinite alternate; }
+  .blob.b2 { width: 46vw; height: 46vw; background: radial-gradient(circle, #143145, transparent 65%); top: 12vh; right: -16vw; animation: drift2 32s ease-in-out infinite alternate; }
+  .blob.b3 { width: 52vw; height: 52vw; background: radial-gradient(circle, #2a1e3f, transparent 65%); bottom: -22vw; left: 24vw; animation: drift3 38s ease-in-out infinite alternate; }
+  @keyframes drift1 { to { transform: translate(9vw, 7vh) scale(1.12); } }
+  @keyframes drift2 { to { transform: translate(-7vw, 12vh) scale(0.92); } }
+  @keyframes drift3 { to { transform: translate(-10vw, -8vh) scale(1.08); } }
+  .grain-overlay { position: fixed; inset: 0; z-index: -1; opacity: .35;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  }
+
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---- nav ---- */
+  nav {
+    position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+    z-index: 50; width: min(1120px, calc(100vw - 32px));
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 18px; border-radius: 999px;
+    background: rgba(18, 19, 18, 0.55);
+    backdrop-filter: blur(24px) saturate(1.7);
+    -webkit-backdrop-filter: blur(24px) saturate(1.7);
+    border: 1px solid var(--stroke);
+    box-shadow: var(--specular), 0 12px 40px rgba(0,0,0,.35);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 650; letter-spacing: .01em; }
+  .brand img { width: 22px; height: 22px; }
+  .nav-links { display: flex; align-items: center; gap: 18px; font-size: 14px; color: var(--dim); }
+  .nav-links a:hover { color: var(--text); }
+
+  /* ---- buttons ---- */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 11px 22px; border-radius: 999px; font-weight: 600; font-size: 15px;
+    border: 1px solid var(--stroke); transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+  }
+  .btn-primary {
+    background: linear-gradient(180deg, #8bedd3, #3ecfa9);
+    color: #05221a; border-color: rgba(255,255,255,.35);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,.5), inset 0 -2px 6px rgba(0,0,0,.12), 0 6px 24px rgba(94,224,196,.28);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: inset 0 1px 1px rgba(255,255,255,.5), inset 0 -2px 6px rgba(0,0,0,.12), 0 10px 32px rgba(94,224,196,.42); }
+  .btn-ghost {
+    background: var(--glass-2); color: var(--text);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    box-shadow: var(--specular);
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,.14); transform: translateY(-2px); }
+  .btn-sm { padding: 8px 16px; font-size: 13.5px; }
+
+  /* ---- hero ---- */
+  header { padding: 150px 0 40px; text-align: center; position: relative; }
+  .pill-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 26px; }
+  .pill {
+    font-size: 12.5px; color: var(--dim); padding: 6px 14px; border-radius: 999px;
+    background: var(--glass-1); border: 1px solid var(--stroke); box-shadow: var(--specular);
+  }
+  .pill b { color: var(--accent); font-weight: 600; }
+  h1 {
+    font-size: clamp(40px, 6.4vw, 72px); line-height: 1.04; letter-spacing: -0.025em; font-weight: 750;
+    margin: 0 auto 20px; max-width: 830px;
+  }
+  h1 .shimmer {
+    background: linear-gradient(100deg, #8bedd3 20%, #d8fff4 50%, #5ee0c4 80%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .sub { font-size: clamp(16px, 2vw, 19px); color: var(--dim); max-width: 620px; margin: 0 auto 34px; }
+  .cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .cta-note { margin-top: 14px; font-size: 12.5px; color: var(--faint); }
+
+  /* ---- shot ---- */
+  .shot-frame {
+    margin: 64px auto 0; max-width: 1020px; border-radius: 20px; padding: 10px;
+    background: linear-gradient(160deg, rgba(255,255,255,.12), rgba(255,255,255,.03) 45%, rgba(255,255,255,.07));
+    border: 1px solid var(--stroke-strong);
+    box-shadow: var(--specular), 0 40px 120px rgba(0,0,0,.55), 0 0 90px rgba(94,224,196,.07);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    transform: perspective(1400px) rotateX(4deg);
+  }
+  .shot-frame img { width: 100%; display: block; border-radius: 12px; }
+
+  /* ---- sections ---- */
+  section { padding: 96px 0; }
+  .kicker { font-size: 13px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); font-weight: 650; margin-bottom: 14px; }
+  h2 { font-size: clamp(28px, 4vw, 44px); letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 14px; font-weight: 720; }
+  .lead { color: var(--dim); font-size: 17px; max-width: 640px; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 44px; }
+  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } .nav-links .hide-sm { display: none; } }
+  .card {
+    padding: 24px; border-radius: 18px;
+    background: linear-gradient(160deg, rgba(255,255,255,.07), rgba(255,255,255,.02) 50%, rgba(255,255,255,.045));
+    border: 1px solid var(--stroke);
+    box-shadow: var(--specular);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    transition: transform .2s ease, border-color .2s ease;
+  }
+  .card:hover { transform: translateY(-4px); border-color: rgba(94,224,196,.35); }
+  .card .ico { font-size: 22px; margin-bottom: 12px; display: block; }
+  .card h3 { font-size: 16.5px; margin-bottom: 6px; font-weight: 650; }
+  .card p { font-size: 14px; color: var(--dim); }
+  .card p b { color: var(--text); font-weight: 600; }
+
+  /* control section */
+  .control { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+  @media (max-width: 860px) { .control { grid-template-columns: 1fr; } }
+  .control-list { display: flex; flex-direction: column; gap: 16px; margin-top: 8px; }
+  .control-item { display: flex; gap: 14px; align-items: flex-start; }
+  .check {
+    flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
+    display: grid; place-items: center; font-size: 13px; color: #05221a; font-weight: 800;
+    background: linear-gradient(180deg, #8bedd3, #3ecfa9);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,.5), 0 2px 10px rgba(94,224,196,.3);
+  }
+  .control-item b { display: block; font-size: 15.5px; }
+  .control-item span { font-size: 14px; color: var(--dim); }
+  .terminal {
+    border-radius: 18px; border: 1px solid var(--stroke); background: rgba(10,11,10,.6);
+    box-shadow: var(--specular), 0 24px 80px rgba(0,0,0,.45);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    padding: 18px 20px; font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 13px; line-height: 1.9;
+  }
+  .terminal .dot-row { display: flex; gap: 6px; margin-bottom: 12px; }
+  .terminal .dot-row i { width: 10px; height: 10px; border-radius: 50%; background: var(--glass-2); }
+  .terminal .c { color: var(--faint); }
+  .terminal .g { color: var(--accent); }
+
+  /* ecosystem */
+  .eco { text-align: center; }
+  .eco .lead { margin: 0 auto; }
+  .orbit-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 34px; }
+  .orbit {
+    padding: 10px 20px; border-radius: 999px; font-size: 14px; color: var(--dim);
+    background: var(--glass-1); border: 1px solid var(--stroke); box-shadow: var(--specular);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  }
+  .orbit.now { color: #05221a; font-weight: 650; background: linear-gradient(180deg, #8bedd3, #3ecfa9); border-color: rgba(255,255,255,.35); }
+
+  /* concentrate strip */
+  .strip {
+    margin-top: 96px; border-radius: 22px; padding: 36px 40px;
+    display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap;
+    background: linear-gradient(120deg, rgba(94,224,196,.12), rgba(122,184,255,.08));
+    border: 1px solid rgba(94,224,196,.25);
+    box-shadow: var(--specular);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  }
+  .strip h3 { font-size: 21px; margin-bottom: 6px; }
+  .strip p { color: var(--dim); font-size: 14.5px; max-width: 560px; }
+  .strip p b { color: var(--text); }
+
+  /* download */
+  .dl { text-align: center; padding-bottom: 40px; }
+  footer {
+    border-top: 1px solid var(--stroke); padding: 28px 0 40px;
+    display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    color: var(--faint); font-size: 13px;
+  }
+  footer a { color: var(--dim); } footer a:hover { color: var(--text); }
+
+  .js .reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s ease, transform .7s ease; }
+  .js .reveal.in { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+<div class="aurora"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+<div class="grain-overlay"></div>
+
+<nav>
+  <a class="brand" href="#"><img src="assets/logo.svg" alt="" />Scribe</a>
+  <div class="nav-links">
+    <a class="hide-sm" href="#features">Features</a>
+    <a class="hide-sm" href="#control">Privacy</a>
+    <a class="hide-sm" href="#future">Roadmap</a>
+    <a href="https://github.com/AdityaPawarr7/scribe" target="_blank" rel="noreferrer">GitHub</a>
+    <a class="btn btn-primary btn-sm" href="https://github.com/AdityaPawarr7/scribe/releases/latest" target="_blank" rel="noreferrer">Download</a>
+  </div>
+</nav>
+
+<header class="wrap">
+  <div class="pill-row">
+    <span class="pill"><b>Free</b> &amp; open source</span>
+    <span class="pill">Runs <b>locally</b> on your Mac</span>
+    <span class="pill">No accounts · no servers · no telemetry</span>
+  </div>
+  <h1>Your meetings.<br /><span class="shimmer">Your machine. Your notes.</span></h1>
+  <p class="sub">Scribe records and transcribes your meetings entirely on your Mac, then turns your rough fragments into polished notes with the AI model of your choice. You stay in control of your information — always.</p>
+  <div class="cta-row">
+    <a class="btn btn-primary" href="https://github.com/AdityaPawarr7/scribe/releases/latest" target="_blank" rel="noreferrer">⬇ Download for macOS</a>
+    <a class="btn btn-ghost" href="https://github.com/AdityaPawarr7/scribe" target="_blank" rel="noreferrer">★ Star on GitHub</a>
+  </div>
+  <div class="cta-note">Apple Silicon · MIT license · community build (right-click → Open the first time)</div>
+  <div class="shot-frame reveal"><img src="assets/hero.png" alt="Scribe showing enhanced meeting notes and a live transcript" /></div>
+</header>
+
+<section id="features" class="wrap">
+  <div class="kicker reveal">What it does</div>
+  <h2 class="reveal">Notes that write themselves,<br />from audio that never leaves.</h2>
+  <div class="grid">
+    <div class="card reveal"><span class="ico">🎙️</span><h3>Local live transcription</h3><p>whisper.cpp turns speech to text <b>on-device</b> while the meeting runs. The recording exists in exactly one place: your disk.</p></div>
+    <div class="card reveal"><span class="ico">✦</span><h3>Auto-notes on Stop</h3><p>Hit stop and your fragments + the transcript become structured notes — summary, decisions, action items with owners. Meetings even <b>title themselves</b>.</p></div>
+    <div class="card reveal"><span class="ico">💬</span><h3>Ask your notes</h3><p>A built-in chat over every meeting you've captured. <b>“What did I promise last week?”</b> — answered, with sources.</p></div>
+    <div class="card reveal"><span class="ico">🔑</span><h3>Any model, your key</h3><p>One <b>Concentrate AI</b> key unlocks Claude, GPT, Gemini and 150+ models — switch from a dropdown. The free tier runs Scribe at <b>$0</b>.</p></div>
+    <div class="card reveal"><span class="ico">📄</span><h3>Your data is just files</h3><p>Plain JSON + WAV on your disk. Grep them, back them up, delete them. <b>No export button needed</b> — nothing was taken from you.</p></div>
+    <div class="card reveal"><span class="ico">🫧</span><h3>Liquid glass, your way</h3><p>Dark &amp; light glass themes, six accent colors, four font packs. It's your desk — it should look like it.</p></div>
+  </div>
+</section>
+
+<section id="control" class="wrap">
+  <div class="control">
+    <div>
+      <div class="kicker reveal">You're in control</div>
+      <h2 class="reveal">Meetings are sensitive.<br />Treat them that way.</h2>
+      <p class="lead reveal">Who you met, what was promised, what you really think — that's yours. Scribe is built so it stays yours.</p>
+      <div class="control-list">
+        <div class="control-item reveal"><span class="check">✓</span><div><b>Audio never uploaded</b><span>Capture and transcription are 100% local. There's no cloud to trust because there's no cloud at all.</span></div></div>
+        <div class="control-item reveal"><span class="check">✓</span><div><b>Text-only, key-only AI</b><span>Enhancement and chat send text to the model you chose with your own key — never audio, never to us.</span></div></div>
+        <div class="control-item reveal"><span class="check">✓</span><div><b>Free forever</b><span>MIT-licensed open source. No subscription, no seats, no premium tier. Read every line on GitHub.</span></div></div>
+      </div>
+    </div>
+    <div class="terminal reveal">
+      <div class="dot-row"><i></i><i></i><i></i></div>
+      <div><span class="c"># your meetings are just files</span></div>
+      <div><span class="g">$</span> ls ~/Library/Application\ Support/Scribe/meetings/a1b2/</div>
+      <div>meeting.json&nbsp;&nbsp;audio.wav</div>
+      <div><span class="g">$</span> cat meeting.json | jq .title</div>
+      <div>"Northstar Robotics — Series B sync"</div>
+      <div><span class="c"># no accounts. no servers. no telemetry.</span></div>
+      <div><span class="g">$</span> whoami</div>
+      <div>the only one with access</div>
+    </div>
+  </div>
+</section>
+
+<section id="future" class="wrap eco">
+  <div class="kicker reveal">Where this is going</div>
+  <h2 class="reveal">An ecosystem agent that<br />keeps track of your life.</h2>
+  <p class="lead reveal">Meetings are just the start. Scribe will plug into your calendar, mail, and calls — so it knows what's coming, captures what happened, and remembers what was promised. On the same terms as today: local-first, your keys, your files, free.</p>
+  <div class="orbit-row reveal">
+    <span class="orbit now">Meetings — today</span>
+    <span class="orbit">Google Calendar &amp; Gmail</span>
+    <span class="orbit">Outlook</span>
+    <span class="orbit">Apple Calendar &amp; Notes</span>
+    <span class="orbit">Zoom</span>
+    <span class="orbit">Meet</span>
+    <span class="orbit">Teams</span>
+    <span class="orbit">MCP — your notes, any agent</span>
+  </div>
+
+  <div class="strip reveal">
+    <div style="text-align:left">
+      <h3>⚡ Powered by Concentrate AI</h3>
+      <p>Scribe stays model-agnostic thanks to <b>Concentrate</b> — one API key, one endpoint, and the entire <b>model fortress</b>: Claude, GPT, Gemini and 150+ models with transparent per-token pricing, including a <b>free model</b> that runs Scribe end-to-end at $0.</p>
+    </div>
+    <a class="btn btn-ghost" href="https://concentrate.ai" target="_blank" rel="noreferrer">Get a key →</a>
+  </div>
+</section>
+
+<section class="wrap dl">
+  <h2 class="reveal">Own your notes today.</h2>
+  <p class="lead reveal" style="margin: 0 auto 30px">Free. Open source. Two-minute setup.</p>
+  <div class="cta-row reveal">
+    <a class="btn btn-primary" href="https://github.com/AdityaPawarr7/scribe/releases/latest" target="_blank" rel="noreferrer">⬇ Download for macOS</a>
+    <a class="btn btn-ghost" href="https://github.com/AdityaPawarr7/scribe" target="_blank" rel="noreferrer">View source</a>
+  </div>
+</section>
+
+<footer class="wrap">
+  <div>🌾 Scribe — MIT licensed, made with whisper.cpp &amp; Concentrate AI</div>
+  <div><a href="https://github.com/AdityaPawarr7/scribe" target="_blank" rel="noreferrer">GitHub</a> · <a href="https://github.com/AdityaPawarr7/scribe/releases/latest" target="_blank" rel="noreferrer">Releases</a> · <a href="https://concentrate.ai" target="_blank" rel="noreferrer">Concentrate</a></div>
+</footer>
+
+<script>
+  document.documentElement.classList.add('js');
+  // safety: never leave content hidden (slow scroll-restore, print, odd embeds)
+  setTimeout(() => document.querySelectorAll('.reveal:not(.in)').forEach((el) => el.classList.add('in')), 4000);
+  const observer = new IntersectionObserver((entries) => {
+    for (const entry of entries) if (entry.isIntersecting) { entry.target.classList.add('in'); observer.unobserve(entry.target); }
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+
+  // gentle parallax on the hero shot
+  const shot = document.querySelector('.shot-frame');
+  addEventListener('scroll', () => {
+    const r = shot.getBoundingClientRect();
+    const t = Math.min(Math.max(1 - r.top / innerHeight, 0), 1);
+    shot.style.transform = `perspective(1400px) rotateX(${4 - t * 4}deg)`;
+  }, { passive: true });
+</script>
+</body>
+</html>
