@@ -23,19 +23,19 @@ export default function App(): React.JSX.Element {
   meetingRef.current = meeting
 
   const refreshList = useCallback(async () => {
-    setMeetings(await window.muesli.meetings.list())
+    setMeetings(await window.scribe.meetings.list())
   }, [])
 
   useEffect(() => {
     void refreshList()
-    void window.muesli.settings.get().then((settings) => {
+    void window.scribe.settings.get().then((settings) => {
       if (!settings.onboardingComplete) setShowOnboarding(true)
     })
   }, [refreshList])
 
   // event subscriptions
   useEffect(() => {
-    const offSegment = window.muesli.on(
+    const offSegment = window.scribe.on(
       'transcript:segment',
       (meetingId: string, segment: TranscriptSegment) => {
         setMeeting((current) =>
@@ -45,22 +45,22 @@ export default function App(): React.JSX.Element {
         )
       }
     )
-    const offTranscriptError = window.muesli.on('transcript:error', (_id: string, message: string) => {
+    const offTranscriptError = window.scribe.on('transcript:error', (_id: string, message: string) => {
       setBanner(`Transcription: ${message}`)
     })
-    const offDelta = window.muesli.on('enhance:delta', (meetingId: string, delta: string) => {
+    const offDelta = window.scribe.on('enhance:delta', (meetingId: string, delta: string) => {
       if (meetingRef.current?.id === meetingId) {
         setEnhanceBuffer((text) => text + delta)
       }
     })
-    const offDone = window.muesli.on('enhance:done', (meetingId: string, fullText: string) => {
+    const offDone = window.scribe.on('enhance:done', (meetingId: string, fullText: string) => {
       if (meetingRef.current?.id === meetingId) {
         setEnhancing(false)
         setEnhanceBuffer('')
         setMeeting((current) => (current ? { ...current, enhancedNotes: fullText } : current))
       }
     })
-    const offEnhanceError = window.muesli.on('enhance:error', (meetingId: string, message: string) => {
+    const offEnhanceError = window.scribe.on('enhance:error', (meetingId: string, message: string) => {
       if (meetingRef.current?.id === meetingId) {
         setEnhancing(false)
         setEnhanceBuffer('')
@@ -87,11 +87,11 @@ export default function App(): React.JSX.Element {
   const selectMeeting = useCallback(async (id: string) => {
     setEnhanceBuffer('')
     setEnhancing(false)
-    setMeeting(await window.muesli.meetings.get(id))
+    setMeeting(await window.scribe.meetings.get(id))
   }, [])
 
   const createMeeting = useCallback(async () => {
-    const created = await window.muesli.meetings.create()
+    const created = await window.scribe.meetings.create()
     await refreshList()
     setEnhanceBuffer('')
     setEnhancing(false)
@@ -100,7 +100,7 @@ export default function App(): React.JSX.Element {
 
   const deleteMeeting = useCallback(
     async (id: string) => {
-      await window.muesli.meetings.delete(id)
+      await window.scribe.meetings.delete(id)
       if (meetingRef.current?.id === id) setMeeting(null)
       await refreshList()
     },
@@ -112,7 +112,7 @@ export default function App(): React.JSX.Element {
       const current = meetingRef.current
       if (!current) return
       setMeeting({ ...current, ...patch })
-      await window.muesli.meetings.update(current.id, patch)
+      await window.scribe.meetings.update(current.id, patch)
       if (patch.title !== undefined) await refreshList()
     },
     [refreshList]
@@ -122,9 +122,9 @@ export default function App(): React.JSX.Element {
     const current = meetingRef.current
     if (!current || recorderRef.current) return
     try {
-      const status = await window.muesli.recording.start(current.id)
+      const status = await window.scribe.recording.start(current.id)
       if (!status.binaryFound || !status.modelFound) {
-        await window.muesli.recording.stop()
+        await window.scribe.recording.stop()
         setBanner(
           !status.binaryFound
             ? 'whisper-cli not found — install it with `brew install whisper-cpp` or set its path in Settings'
@@ -133,42 +133,52 @@ export default function App(): React.JSX.Element {
         setSettingsOpen(true)
         return
       }
-      const recorder = new MicRecorder((chunk) => window.muesli.recording.sendAudio(chunk))
+      const recorder = new MicRecorder((chunk) => window.scribe.recording.sendAudio(chunk))
       await recorder.start()
       recorderRef.current = recorder
       setRecordingId(current.id)
       setBanner(null)
     } catch (error) {
-      await window.muesli.recording.stop().catch(() => null)
+      await window.scribe.recording.stop().catch(() => null)
       setBanner(error instanceof Error ? error.message : String(error))
     }
+  }, [])
+
+  const runEnhance = useCallback(async () => {
+    const current = meetingRef.current
+    if (!current) return
+    // persist latest notes before enhancing
+    await window.scribe.meetings.update(current.id, { notes: current.notes })
+    setEnhanceBuffer('')
+    setEnhancing(true)
+    await window.scribe.enhance.run(current.id)
   }, [])
 
   const stopRecording = useCallback(async () => {
     await recorderRef.current?.stop()
     recorderRef.current = null
     setRecordingId(null)
-    const finalized = await window.muesli.recording.stop()
+    const finalized = await window.scribe.recording.stop()
     if (finalized && meetingRef.current?.id === finalized.id) {
       setMeeting(finalized)
     }
     await refreshList()
-  }, [refreshList])
-
-  const runEnhance = useCallback(async () => {
-    const current = meetingRef.current
-    if (!current) return
-    // persist latest notes before enhancing
-    await window.muesli.meetings.update(current.id, { notes: current.notes })
-    setEnhanceBuffer('')
-    setEnhancing(true)
-    await window.muesli.enhance.run(current.id)
-  }, [])
+    // notes appear on their own the moment the recording ends
+    const settings = await window.scribe.settings.get()
+    if (
+      settings.autoEnhance &&
+      finalized &&
+      meetingRef.current?.id === finalized.id &&
+      (finalized.transcript.length > 0 || finalized.notes.trim() !== '')
+    ) {
+      void runEnhance()
+    }
+  }, [refreshList, runEnhance])
 
   const cancelEnhance = useCallback(async () => {
     const current = meetingRef.current
     if (!current) return
-    await window.muesli.enhance.cancel(current.id)
+    await window.scribe.enhance.cancel(current.id)
     setEnhancing(false)
     setEnhanceBuffer('')
   }, [])
@@ -211,7 +221,7 @@ export default function App(): React.JSX.Element {
             <div className="empty-logo">
               <Logo size={72} />
             </div>
-            <h1>Muesli</h1>
+            <h1>Scribe</h1>
             <p>Open-source meeting notes. Record, transcribe locally, enhance with the model of your choice.</p>
             <button className="primary" onClick={() => void createMeeting()}>
               New meeting

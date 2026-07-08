@@ -60,7 +60,7 @@ export function enhanceMeeting(meeting: Meeting, callbacks: EnhanceCallbacks): {
     return { cancel: () => controller.abort() }
   }
 
-  void streamEnhancement(meeting, apiKey, settings.model, controller.signal, callbacks)
+  void streamEnhancement(meeting, apiKey, settings.model, settings.userName, controller.signal, callbacks)
   return { cancel: () => controller.abort() }
 }
 
@@ -68,9 +68,13 @@ async function streamEnhancement(
   meeting: Meeting,
   apiKey: string,
   model: string,
+  userName: string,
   signal: AbortSignal,
   callbacks: EnhanceCallbacks
 ): Promise<void> {
+  const instructions = userName
+    ? `${SYSTEM_PROMPT}\n- The person who recorded this meeting and wrote the rough notes is named ${userName}. The transcript mostly captures their microphone. Refer to them as ${userName} — never "the speaker", "the user", or "the note-taker".`
+    : SYSTEM_PROMPT
   let fullText = ''
   try {
     const response = await fetch(CONCENTRATE_URL, {
@@ -83,7 +87,7 @@ async function streamEnhancement(
       },
       body: JSON.stringify({
         model: model || 'claude-opus-4.8',
-        instructions: SYSTEM_PROMPT,
+        instructions,
         input: buildUserContent(meeting),
         max_output_tokens: 16000,
         stream: true

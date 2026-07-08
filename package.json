@@ -1,7 +1,8 @@
 {
-  "name": "muesli",
+  "name": "scribe",
+  "productName": "Scribe",
   "version": "0.1.0",
-  "description": "Open-source AI meeting notes — record, transcribe locally with whisper.cpp, and enhance your notes with any model via Concentrate AI",
+  "description": "Scribe: open-source AI meeting notes — record, transcribe locally with whisper.cpp, and enhance your notes with any model via Concentrate AI",
   "main": "./out/main/index.js",
   "license": "MIT",
   "scripts": {

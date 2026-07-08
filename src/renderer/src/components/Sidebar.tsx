@@ -29,7 +29,7 @@ export default function Sidebar(props: Props): React.JSX.Element {
     <aside className="sidebar">
       <div className="sidebar-header">
         <span className="wordmark">
-          <Logo size={20} className="wordmark-logo" /> Muesli
+          <Logo size={20} className="wordmark-logo" /> Scribe
         </span>
       </div>
       <button className="primary new-meeting" onClick={props.onCreate}>

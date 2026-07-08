@@ -10,7 +10,9 @@ const DEFAULTS: Settings = {
   whisperBinaryPath: '',
   whisperModelPath: '',
   language: 'en',
-  onboardingComplete: false
+  onboardingComplete: false,
+  userName: '',
+  autoEnhance: true
 }
 
 const WHISPER_CANDIDATES = [

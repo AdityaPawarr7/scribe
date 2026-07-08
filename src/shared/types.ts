@@ -32,6 +32,10 @@ export interface Settings {
   whisperModelPath: string
   language: string
   onboardingComplete: boolean
+  /** how the note-taker should be referred to in enhanced notes */
+  userName: string
+  /** run enhancement automatically when a recording stops */
+  autoEnhance: boolean
 }
 
 export interface ConcentrateModel {

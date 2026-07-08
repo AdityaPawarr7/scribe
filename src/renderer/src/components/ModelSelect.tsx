@@ -34,7 +34,7 @@ export default function ModelSelect(props: Props): React.JSX.Element {
 
   useEffect(() => {
     if (catalogCache) return
-    void window.muesli.concentrate.models().then((result) => {
+    void window.scribe.concentrate.models().then((result) => {
       if (result.ok && result.models.length > 0) {
         catalogCache = result.models
         setCatalog(result.models)

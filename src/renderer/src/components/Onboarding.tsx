@@ -16,16 +16,18 @@ export default function Onboarding(props: Props): React.JSX.Element {
   const [progress, setProgress] = useState<ModelDownloadProgress | null>(null)
   const [apiKey, setApiKey] = useState('')
   const [model, setModel] = useState('claude-opus-4.8')
+  const [userName, setUserName] = useState('')
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState<ConnectionTestResult | null>(null)
 
   useEffect(() => {
-    void window.muesli.whisper.status().then(setStatus)
-    void window.muesli.settings.get().then((settings) => {
+    void window.scribe.whisper.status().then(setStatus)
+    void window.scribe.settings.get().then((settings) => {
       if (settings.concentrateApiKey) setApiKey(settings.concentrateApiKey)
       if (settings.model) setModel(settings.model)
+      if (settings.userName) setUserName(settings.userName)
     })
-    return window.muesli.on('whisper:downloadProgress', (p: ModelDownloadProgress) => {
+    return window.scribe.on('whisper:downloadProgress', (p: ModelDownloadProgress) => {
       setProgress(p)
       if (p.done) setDownloading(false)
     })
@@ -35,7 +37,7 @@ export default function Onboarding(props: Props): React.JSX.Element {
     setDownloading(true)
     setProgress(null)
     try {
-      setStatus(await window.muesli.whisper.downloadModel())
+      setStatus(await window.scribe.whisper.downloadModel())
     } catch {
       // surfaced via the progress event
     } finally {
@@ -46,27 +48,32 @@ export default function Onboarding(props: Props): React.JSX.Element {
   const saveKey = (value: string): void => {
     setApiKey(value)
     setTestResult(null)
-    void window.muesli.settings.set({ concentrateApiKey: value })
+    void window.scribe.settings.set({ concentrateApiKey: value })
+  }
+
+  const saveName = (value: string): void => {
+    setUserName(value)
+    void window.scribe.settings.set({ userName: value })
   }
 
   const saveModel = (value: string): void => {
     setModel(value)
     setTestResult(null)
-    void window.muesli.settings.set({ model: value })
+    void window.scribe.settings.set({ model: value })
   }
 
   const runTest = async (): Promise<void> => {
     setTesting(true)
     setTestResult(null)
     try {
-      setTestResult(await window.muesli.concentrate.test(model))
+      setTestResult(await window.scribe.concentrate.test(model))
     } finally {
       setTesting(false)
     }
   }
 
   const finish = (): void => {
-    void window.muesli.settings.set({ onboardingComplete: true })
+    void window.scribe.settings.set({ onboardingComplete: true })
     props.onDone()
   }
 
@@ -99,7 +106,7 @@ export default function Onboarding(props: Props): React.JSX.Element {
             <div className="grain-hero">
               <Logo size={96} />
             </div>
-            <h1>Welcome to Muesli</h1>
+            <h1>Welcome to Scribe</h1>
             <p className="onboarding-tagline">
               Open-source meeting notes. Like the grains in the logo — your rough notes and the
               transcript are stronger together.
@@ -121,6 +128,16 @@ export default function Onboarding(props: Props): React.JSX.Element {
                 <span>Type fragments during the meeting; AI merges them with the transcript into polished notes.</span>
               </div>
             </div>
+            <label className="name-field">
+              What's your name? Your notes will say “{userName.trim() || 'you'} agreed to…” instead
+              of “the speaker”.
+              <input
+                type="text"
+                placeholder="Your first name"
+                value={userName}
+                onChange={(event) => saveName(event.target.value)}
+              />
+            </label>
             <button className="primary onboarding-next" onClick={() => setStep(1)}>
               Set me up →
             </button>
@@ -131,7 +148,7 @@ export default function Onboarding(props: Props): React.JSX.Element {
           <div className="onboarding-step">
             <h1>Local transcription</h1>
             <p className="onboarding-tagline">
-              Muesli uses <strong>whisper.cpp</strong> to turn speech into text entirely on this
+              Scribe uses <strong>whisper.cpp</strong> to turn speech into text entirely on this
               machine.
             </p>
             <div className={`status-row ${status?.binaryFound ? 'ok' : 'missing'}`}>
@@ -166,7 +183,7 @@ export default function Onboarding(props: Props): React.JSX.Element {
           <div className="onboarding-step">
             <h1>Bring your own key</h1>
             <p className="onboarding-tagline">
-              Muesli is BYOK: you plug in one API key from{' '}
+              Scribe is BYOK: you plug in one API key from{' '}
               <a href="https://concentrate.ai" target="_blank" rel="noreferrer">
                 Concentrate AI
               </a>{' '}

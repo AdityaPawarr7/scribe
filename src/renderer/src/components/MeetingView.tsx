@@ -7,7 +7,7 @@ import ModelSelect from './ModelSelect'
 function HeaderModelPicker(): React.JSX.Element {
   const [model, setModel] = useState('')
   useEffect(() => {
-    void window.muesli.settings.get().then((settings) => setModel(settings.model))
+    void window.scribe.settings.get().then((settings) => setModel(settings.model))
   }, [])
   if (!model) return <></>
   return (
@@ -16,7 +16,7 @@ function HeaderModelPicker(): React.JSX.Element {
       value={model}
       onChange={(next) => {
         setModel(next)
-        void window.muesli.settings.set({ model: next })
+        void window.scribe.settings.set({ model: next })
       }}
     />
   )

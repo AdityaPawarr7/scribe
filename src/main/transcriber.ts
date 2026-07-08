@@ -119,7 +119,7 @@ export class RecordingSession {
 
     this.busy = true
     this.transcribedSamples = end
-    const wavPath = join(app.getPath('temp'), `muesli-chunk-${this.meetingId}-${start}.wav`)
+    const wavPath = join(app.getPath('temp'), `scribe-chunk-${this.meetingId}-${start}.wav`)
     try {
       writeWav(this.takeSamples(start, end), wavPath)
       const text = cleanTranscription(await runWhisper(wavPath))

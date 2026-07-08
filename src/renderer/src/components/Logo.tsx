@@ -4,7 +4,7 @@ interface Props {
 }
 
 /**
- * The Muesli mark: a cluster of grain silhouettes forming one rosette —
+ * The Scribe mark: a cluster of grain silhouettes forming one rosette —
  * separate grains, stronger together.
  */
 export default function Logo({ size = 28, className }: Props): React.JSX.Element {
@@ -16,7 +16,7 @@ export default function Logo({ size = 28, className }: Props): React.JSX.Element
       viewBox="-50 -50 100 100"
       className={className}
       role="img"
-      aria-label="Muesli logo"
+      aria-label="Scribe logo"
       fill="currentColor"
     >
       {Array.from({ length: grains }, (_, i) => {

@@ -20,7 +20,7 @@ export type EventChannel =
   | 'enhance:error'
   | 'whisper:downloadProgress'
 
-export interface MuesliApi {
+export interface ScribeApi {
   meetings: {
     list: () => Promise<MeetingSummary[]>
     get: (id: string) => Promise<Meeting | null>
@@ -54,7 +54,7 @@ export interface MuesliApi {
 
 declare global {
   interface Window {
-    muesli: MuesliApi
+    scribe: ScribeApi
   }
 }
 

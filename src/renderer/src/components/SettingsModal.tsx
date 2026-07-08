@@ -13,9 +13,9 @@ export default function SettingsModal(props: Props): React.JSX.Element {
   const [progress, setProgress] = useState<ModelDownloadProgress | null>(null)
 
   useEffect(() => {
-    void window.muesli.settings.get().then(setSettings)
-    void window.muesli.whisper.status().then(setStatus)
-    return window.muesli.on('whisper:downloadProgress', (p: ModelDownloadProgress) => {
+    void window.scribe.settings.get().then(setSettings)
+    void window.scribe.whisper.status().then(setStatus)
+    return window.scribe.on('whisper:downloadProgress', (p: ModelDownloadProgress) => {
       setProgress(p)
       if (p.done) setDownloading(false)
     })
@@ -23,14 +23,14 @@ export default function SettingsModal(props: Props): React.JSX.Element {
 
   const save = (patch: Partial<Settings>): void => {
     setSettings((current) => (current ? { ...current, ...patch } : current))
-    void window.muesli.settings.set(patch).then(() => window.muesli.whisper.status().then(setStatus))
+    void window.scribe.settings.set(patch).then(() => window.scribe.whisper.status().then(setStatus))
   }
 
   const downloadModel = async (): Promise<void> => {
     setDownloading(true)
     setProgress(null)
     try {
-      setStatus(await window.muesli.whisper.downloadModel())
+      setStatus(await window.scribe.whisper.downloadModel())
     } catch {
       // error surfaced via progress event
     } finally {
@@ -54,6 +54,25 @@ export default function SettingsModal(props: Props): React.JSX.Element {
             ✕
           </button>
         </div>
+
+        <h3>General</h3>
+        <label>
+          Your name — enhanced notes refer to you by name instead of “the speaker”
+          <input
+            type="text"
+            placeholder="Your first name"
+            value={settings.userName}
+            onChange={(event) => save({ userName: event.target.value })}
+          />
+        </label>
+        <label className="checkbox-row">
+          <input
+            type="checkbox"
+            checked={settings.autoEnhance}
+            onChange={(event) => save({ autoEnhance: event.target.checked })}
+          />
+          Enhance notes automatically when a recording ends
+        </label>
 
         <h3>Concentrate AI (note enhancement)</h3>
         <label>

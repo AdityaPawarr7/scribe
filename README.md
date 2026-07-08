@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="assets/logo.svg" width="96" alt="Muesli — grains together" />
+  <img src="assets/logo.svg" width="96" alt="Scribe — grains together" />
 </p>
 
-<h1 align="center">Muesli</h1>
+<h1 align="center">Scribe</h1>
 
 <p align="center"><strong>Open-source AI meeting notes.</strong> Local transcription. Bring your own key. Any model.</p>
 
@@ -10,7 +10,7 @@ Record a meeting, take rough notes while you talk, and let AI merge them with th
 
 - **Local transcription** — audio is transcribed on your machine with [whisper.cpp](https://github.com/ggerganov/whisper.cpp). Your recordings never leave your laptop.
 - **Your notes stay yours** — everything is stored as plain JSON + WAV on disk. No accounts, no backend, no sync servers.
-- **Bring your own key 🔑** — no subscription, no middleman markup. Plug in one [Concentrate AI](https://concentrate.ai) key and get 150+ models through a single door — Claude, GPT, Gemini, and everything else in the [model fortress](https://concentrate.ai/models). Switch models from a dropdown right in the app. **No budget? Concentrate serves `gpt-oss-120b` for free**, so you can run Muesli end-to-end at $0.
+- **Bring your own key 🔑** — no subscription, no middleman markup. Plug in one [Concentrate AI](https://concentrate.ai) key and get 150+ models through a single door — Claude, GPT, Gemini, and everything else in the [model fortress](https://concentrate.ai/models). Switch models from a dropdown right in the app. **No budget? Concentrate serves `gpt-oss-120b` for free**, so you can run Scribe end-to-end at $0.
 - **Text-only egress** — enhancement is the only step that calls an external API, and it sends text, never audio.
 
 ## How it works
@@ -21,9 +21,9 @@ mic ──► 16kHz PCM ──► whisper.cpp (local) ──► live transcript 
 you type rough notes during the meeting ──────────────────────┘        (model of your choice)
 ```
 
-1. Hit **Record** when your meeting starts. Muesli captures your microphone and transcribes it locally in ~15-second chunks, so the transcript appears live.
+1. Hit **Record** when your meeting starts. Scribe captures your microphone and transcribes it locally in ~15-second chunks, so the transcript appears live.
 2. Type fragments into **My notes** — just the things *you* care about. Don't try to keep up with the conversation; that's the transcript's job.
-3. Hit **✦ Enhance notes** when the meeting ends. Your chosen model merges your fragments with the transcript into clean, structured notes.
+3. Hit **Stop** — that's it. The moment a recording ends, Scribe automatically merges your fragments with the transcript into clean, structured notes (toggle off in Settings if you prefer the manual ✦ button). Notes refer to you by the name you gave during setup, not "the speaker".
 
 ## Getting started
 
@@ -31,12 +31,12 @@ Requirements: macOS, Node 20+, and whisper.cpp.
 
 ```sh
 brew install whisper-cpp   # local transcription engine
-git clone <this repo> && cd muesli
+git clone https://github.com/AdityaPawarr7/scribe && cd scribe
 npm install
 npm run dev
 ```
 
-On first launch Muesli walks you through everything: downloading the speech model (one click, ~150MB, one-time), pasting your [Concentrate AI](https://concentrate.ai) key (`sk-cn-…`, or export `CONCENTRATE_API_KEY`), picking a model, and testing the connection — including a one-click "use the free model" path via `gpt-oss-120b`. The default model is `claude-opus-4.8`; switch anytime from the dropdown in the meeting header or Settings.
+On first launch Scribe walks you through everything: downloading the speech model (one click, ~150MB, one-time), pasting your [Concentrate AI](https://concentrate.ai) key (`sk-cn-…`, or export `CONCENTRATE_API_KEY`), picking a model, and testing the connection — including a one-click "use the free model" path via `gpt-oss-120b`. The default model is `claude-opus-4.8`; switch anytime from the dropdown in the meeting header or Settings.
 
 Then create a meeting and hit Record.
 
@@ -57,7 +57,7 @@ No database, no server, no native modules, zero runtime npm dependencies in the 
 
 ## Roadmap
 
-Muesli is meant to grow into a full open meeting workspace. Rough order:
+Scribe is meant to grow into a full open meeting workspace. Rough order:
 
 - [ ] **System audio capture** (macOS ScreenCaptureKit helper) — hear both sides of a call
 - [ ] Calendar integration — auto-create meetings from your calendar, attach attendees

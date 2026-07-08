@@ -3,17 +3,23 @@
   margin: 0;
 }
 
+/* Liquid-glass palette: translucent layers over the macOS vibrancy window */
 :root {
-  --bg: #191817;
-  --bg-raised: #211f1e;
-  --bg-hover: #2a2827;
-  --border: #34312f;
-  --text: #ece7e1;
-  --text-dim: #9b948c;
-  --accent: #e8a13c;
-  --accent-text: #1c1508;
-  --danger: #e05d4b;
-  --ok: #7fbf7f;
+  --text: rgba(255, 255, 255, 0.94);
+  --text-dim: rgba(255, 255, 255, 0.55);
+  --glass-1: rgba(255, 255, 255, 0.05); /* base panel tint */
+  --glass-2: rgba(255, 255, 255, 0.1); /* raised / hover */
+  --glass-3: rgba(255, 255, 255, 0.16); /* pressed / selected */
+  --stroke: rgba(255, 255, 255, 0.1);
+  --stroke-strong: rgba(255, 255, 255, 0.2);
+  --scrim: rgba(24, 21, 18, 0.58); /* keeps text readable over any desktop */
+  --sheet: rgba(32, 29, 26, 0.62);
+  --accent: #f0a63e;
+  --accent-soft: rgba(240, 166, 62, 0.18);
+  --accent-text: #221704;
+  --danger: #ff6b57;
+  --ok: #8fd18f;
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 
 html,
@@ -24,7 +30,7 @@ body,
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: var(--bg);
+  background: var(--scrim); /* vibrancy shows through beneath this tint */
   color: var(--text);
   font-size: 14px;
   overflow: hidden;
@@ -49,8 +55,8 @@ button {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  background: var(--bg-raised);
-  border-right: 1px solid var(--border);
+  background: var(--glass-1);
+  border-right: 1px solid var(--stroke);
   padding: 12px;
   padding-top: 44px; /* room for macOS traffic lights */
   -webkit-app-region: drag;
@@ -62,8 +68,17 @@ button {
 }
 
 .wordmark {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--accent);
   font-weight: 600;
   font-size: 15px;
+  text-shadow: 0 0 18px rgba(240, 166, 62, 0.35);
+}
+
+.wordmark-logo {
+  flex-shrink: 0;
 }
 
 .sidebar-header {
@@ -84,16 +99,20 @@ button {
 .meeting-item {
   position: relative;
   padding: 8px 10px;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.15s ease;
 }
 
 .meeting-item:hover {
-  background: var(--bg-hover);
+  background: var(--glass-2);
 }
 
 .meeting-item.selected {
-  background: var(--bg-hover);
+  background: var(--glass-2);
+  border-color: var(--stroke);
+  box-shadow: var(--glass-highlight);
 }
 
 .meeting-item-title {
@@ -138,22 +157,34 @@ button {
 .settings-button {
   text-align: left;
   padding: 8px 10px;
-  border-radius: 8px;
+  border-radius: 10px;
   color: var(--text-dim);
 }
 
 .settings-button:hover {
-  background: var(--bg-hover);
+  background: var(--glass-2);
   color: var(--text);
 }
 
-/* ---- shared buttons ---- */
+/* ---- glass buttons ---- */
 .primary {
-  background: var(--accent);
+  background: linear-gradient(180deg, #f7bb5e, #e89736);
   color: var(--accent-text);
-  border-radius: 8px;
-  padding: 8px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  padding: 8px 16px;
   font-weight: 600;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 4px 14px rgba(240, 166, 62, 0.25);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 6px 18px rgba(240, 166, 62, 0.35);
 }
 
 .primary:disabled {
@@ -162,15 +193,21 @@ button {
 }
 
 .secondary {
-  background: var(--bg-hover);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 8px 14px;
+  background: var(--glass-2);
+  border: 1px solid var(--stroke);
+  border-radius: 999px;
+  padding: 8px 16px;
+  box-shadow: var(--glass-highlight);
+}
+
+.secondary:hover {
+  background: var(--glass-3);
 }
 
 .secondary.active {
-  border-color: var(--accent);
+  border-color: rgba(240, 166, 62, 0.5);
   color: var(--accent);
+  background: var(--accent-soft);
 }
 
 /* ---- content ---- */
@@ -186,8 +223,9 @@ button {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  background: #4a2c22;
-  border-bottom: 1px solid var(--border);
+  background: rgba(120, 52, 38, 0.45);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--stroke);
   padding: 8px 16px;
   font-size: 13px;
 }
@@ -213,7 +251,8 @@ button {
 }
 
 .empty-logo {
-  font-size: 48px;
+  color: var(--accent);
+  filter: drop-shadow(0 0 24px rgba(240, 166, 62, 0.35));
 }
 
 .empty-state h1 {
@@ -234,12 +273,14 @@ button {
   align-items: center;
   gap: 12px;
   padding: 14px 20px 10px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--stroke);
+  background: var(--glass-1);
   -webkit-app-region: drag;
 }
 
 .meeting-header input,
-.meeting-header button {
+.meeting-header button,
+.meeting-header select {
   -webkit-app-region: no-drag;
 }
 
@@ -256,25 +297,31 @@ button {
 
 .header-actions {
   display: flex;
+  align-items: center;
   gap: 8px;
   flex-shrink: 0;
 }
 
 .record {
-  background: var(--bg-hover);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 8px 14px;
+  background: var(--glass-2);
+  border: 1px solid var(--stroke);
+  border-radius: 999px;
+  padding: 8px 16px;
   color: var(--danger);
   font-weight: 600;
   display: flex;
   align-items: center;
   gap: 6px;
+  box-shadow: var(--glass-highlight);
 }
 
 .record.recording {
-  background: var(--danger);
+  background: linear-gradient(180deg, #ff7a63, #e5503c);
   color: #fff;
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 4px 16px rgba(229, 80, 60, 0.35);
 }
 
 .rec-dot {
@@ -314,22 +361,29 @@ button {
   display: flex;
   gap: 4px;
   margin-bottom: 10px;
+  background: var(--glass-1);
+  border: 1px solid var(--stroke);
+  border-radius: 999px;
+  padding: 3px;
+  width: fit-content;
 }
 
 .tab {
-  padding: 6px 12px;
-  border-radius: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
   color: var(--text-dim);
+  transition: background 0.15s ease;
 }
 
 .tab:hover {
-  background: var(--bg-hover);
+  color: var(--text);
 }
 
 .tab.active {
-  background: var(--bg-hover);
+  background: var(--glass-3);
   color: var(--text);
   font-weight: 600;
+  box-shadow: var(--glass-highlight);
 }
 
 .tab:disabled {
@@ -383,9 +437,9 @@ button {
 }
 
 .enhanced-notes code {
-  background: var(--bg-hover);
+  background: var(--glass-2);
   padding: 1px 5px;
-  border-radius: 4px;
+  border-radius: 5px;
   font-size: 13px;
 }
 
@@ -393,10 +447,10 @@ button {
 .transcript-pane {
   width: 320px;
   flex-shrink: 0;
-  border-left: 1px solid var(--border);
+  border-left: 1px solid var(--stroke);
   display: flex;
   flex-direction: column;
-  background: var(--bg-raised);
+  background: var(--glass-1);
 }
 
 .transcript-title {
@@ -405,17 +459,17 @@ button {
   display: flex;
   align-items: center;
   gap: 8px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--stroke);
 }
 
 .live-pill {
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.08em;
-  background: var(--danger);
+  background: linear-gradient(180deg, #ff7a63, #e5503c);
   color: #fff;
-  border-radius: 4px;
-  padding: 2px 6px;
+  border-radius: 999px;
+  padding: 2px 8px;
   animation: pulse 1.4s ease-in-out infinite;
 }
 
@@ -462,11 +516,12 @@ button {
   }
 }
 
-/* ---- modal ---- */
+/* ---- sheets (modal + onboarding) ---- */
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(24px) saturate(1.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -477,10 +532,13 @@ button {
   width: 520px;
   max-height: 80vh;
   overflow-y: auto;
-  background: var(--bg-raised);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  background: var(--sheet);
+  border: 1px solid var(--stroke-strong);
+  border-radius: 20px;
   padding: 20px;
+  box-shadow:
+    var(--glass-highlight),
+    0 24px 80px rgba(0, 0, 0, 0.45);
 }
 
 .modal-header {
@@ -498,6 +556,10 @@ button {
   color: var(--text-dim);
 }
 
+.modal a {
+  color: var(--accent);
+}
+
 .modal label {
   display: block;
   margin: 10px 0;
@@ -510,13 +572,26 @@ button {
   display: block;
   width: 100%;
   margin-top: 4px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  background: var(--glass-1);
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
   color: var(--text);
   padding: 8px 10px;
   font: inherit;
   font-size: 13px;
+}
+
+.modal .checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal .checkbox-row input {
+  display: inline-block;
+  width: auto;
+  margin: 0;
+  accent-color: var(--accent);
 }
 
 .status-row {
@@ -533,31 +608,11 @@ button {
   color: var(--danger);
 }
 
-.modal a {
-  color: var(--accent);
-}
-
-/* ---- logo ---- */
-.wordmark {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--accent);
-}
-
-.wordmark-logo {
-  flex-shrink: 0;
-}
-
-.empty-logo {
-  color: var(--accent);
-}
-
 /* ---- model select ---- */
 .model-select {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  background: var(--glass-1);
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
   color: var(--text);
   padding: 8px 10px;
   font: inherit;
@@ -570,13 +625,16 @@ button {
   width: auto;
   max-width: 190px;
   margin-top: 0;
-  padding: 8px;
-  background: var(--bg-hover);
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: var(--glass-2);
   color: var(--text-dim);
+  box-shadow: var(--glass-highlight);
 }
 
 .model-select.compact:hover {
   color: var(--text);
+  background: var(--glass-3);
 }
 
 .model-select-custom {
@@ -606,8 +664,9 @@ button {
   align-items: center;
   justify-content: center;
   background:
-    radial-gradient(ellipse 70% 55% at 50% -10%, rgba(232, 161, 60, 0.16), transparent),
-    var(--bg);
+    radial-gradient(ellipse 70% 55% at 50% -10%, rgba(240, 166, 62, 0.18), transparent),
+    rgba(18, 16, 14, 0.45);
+  backdrop-filter: blur(28px) saturate(1.5);
   -webkit-app-region: drag;
   animation: fade-in 0.4s ease;
 }
@@ -624,12 +683,14 @@ button {
   max-width: calc(100vw - 48px);
   max-height: calc(100vh - 48px);
   overflow-y: auto;
-  background: var(--bg-raised);
-  border: 1px solid var(--border);
-  border-radius: 16px;
+  background: var(--sheet);
+  border: 1px solid var(--stroke-strong);
+  border-radius: 24px;
   padding: 32px 36px 56px;
   -webkit-app-region: no-drag;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+  box-shadow:
+    var(--glass-highlight),
+    0 24px 80px rgba(0, 0, 0, 0.5);
 }
 
 .onboarding-step {
@@ -663,7 +724,7 @@ button {
   align-self: center;
   color: var(--accent);
   animation: grain-spin 32s linear infinite;
-  filter: drop-shadow(0 0 24px rgba(232, 161, 60, 0.35));
+  filter: drop-shadow(0 0 24px rgba(240, 166, 62, 0.4));
 }
 
 @keyframes grain-spin {
@@ -682,13 +743,14 @@ button {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  background: var(--glass-1);
+  border: 1px solid var(--stroke);
+  border-radius: 14px;
   padding: 14px;
   font-size: 12.5px;
   line-height: 1.45;
   color: var(--text-dim);
+  box-shadow: var(--glass-highlight);
 }
 
 .feature strong {
@@ -710,28 +772,32 @@ button {
   display: block;
   width: 100%;
   margin-top: 4px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  background: var(--glass-1);
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
   color: var(--text);
   padding: 9px 10px;
   font: inherit;
   font-size: 13px;
 }
 
+.name-field {
+  text-align: left;
+}
+
 .free-callout {
-  background: rgba(127, 191, 127, 0.08);
-  border: 1px solid rgba(127, 191, 127, 0.25);
-  border-radius: 10px;
+  background: rgba(143, 209, 143, 0.08);
+  border: 1px solid rgba(143, 209, 143, 0.25);
+  border-radius: 12px;
   padding: 10px 12px;
   font-size: 13px;
   line-height: 1.5;
 }
 
 .free-callout code {
-  background: var(--bg-hover);
+  background: var(--glass-2);
   padding: 1px 5px;
-  border-radius: 4px;
+  border-radius: 5px;
 }
 
 .test-row {
@@ -757,7 +823,7 @@ button {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: var(--border);
+  background: var(--stroke-strong);
   padding: 0;
   transition: all 0.25s ease;
 }

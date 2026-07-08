@@ -63,7 +63,7 @@ const api = {
   }
 }
 
-export type MuesliApi = typeof api
+export type ScribeApi = typeof api
 export type { Meeting, MeetingSummary, ModelDownloadProgress, Settings, TranscriptSegment, WhisperStatus }
 
-contextBridge.exposeInMainWorld('muesli', api)
+contextBridge.exposeInMainWorld('scribe', api)

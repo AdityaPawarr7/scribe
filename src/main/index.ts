@@ -1,4 +1,5 @@
 import { app, BrowserWindow, ipcMain, shell, systemPreferences } from 'electron'
+import { cpSync, existsSync } from 'fs'
 import { join } from 'path'
 import { loadSettings, saveSettings, whisperStatus } from './settings'
 import * as store from './store'
@@ -7,6 +8,20 @@ import { enhanceMeeting } from './enhancer'
 import { downloadModel } from './modelDownload'
 import { listModels, testConnection } from './concentrate'
 import type { Meeting, Settings } from '@shared/types'
+
+// The app was called Muesli before v0.2 — carry existing meetings,
+// settings, and the downloaded whisper model over to the new data dir.
+function migrateMuesliData(): void {
+  const oldDir = join(app.getPath('appData'), 'muesli')
+  const newDir = app.getPath('userData')
+  if (existsSync(oldDir) && !existsSync(join(newDir, 'settings.json'))) {
+    try {
+      cpSync(oldDir, newDir, { recursive: true })
+    } catch {
+      // fall back to a fresh profile rather than failing startup
+    }
+  }
+}
 
 let mainWindow: BrowserWindow | null = null
 let activeRecording: RecordingSession | null = null
@@ -18,10 +33,17 @@ function createWindow(): void {
     height: 800,
     minWidth: 860,
     minHeight: 560,
-    title: 'Muesli',
+    title: 'Scribe',
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 16, y: 14 },
-    backgroundColor: '#191817',
+    // Liquid-glass look: let macOS vibrancy shine through a transparent window
+    ...(process.platform === 'darwin'
+      ? {
+          vibrancy: 'under-window' as const,
+          visualEffectState: 'followWindow' as const,
+          backgroundColor: '#00000000'
+        }
+      : { backgroundColor: '#191817' }),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
@@ -134,6 +156,7 @@ ipcMain.handle('whisper:downloadModel', async () => {
 })
 
 app.whenReady().then(() => {
+  migrateMuesliData()
   createWindow()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
