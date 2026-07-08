@@ -36,6 +36,15 @@ export interface Settings {
   userName: string
   /** run enhancement automatically when a recording stops */
   autoEnhance: boolean
+  theme: 'dark' | 'light'
+  /** accent color hex */
+  accent: string
+  fontPack: 'system' | 'typewriter' | 'mono' | 'serif'
+}
+
+export interface ChatTurn {
+  role: 'user' | 'assistant'
+  text: string
 }
 
 export interface ConcentrateModel {

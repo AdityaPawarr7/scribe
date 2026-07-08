@@ -52,12 +52,7 @@ export function createMeeting(): Meeting {
   const now = Date.now()
   const meeting: Meeting = {
     id: randomUUID(),
-    title: new Date(now).toLocaleString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit'
-    }),
+    title: 'Untitled',
     createdAt: now,
     updatedAt: now,
     notes: '',

@@ -1,5 +1,6 @@
 /// <reference types="vite/client" />
 import type {
+  ChatTurn,
   ConcentrateModel,
   ConnectionTestResult,
   Meeting,
@@ -19,6 +20,10 @@ export type EventChannel =
   | 'enhance:done'
   | 'enhance:error'
   | 'whisper:downloadProgress'
+  | 'meeting:titled'
+  | 'chat:delta'
+  | 'chat:done'
+  | 'chat:error'
 
 export interface ScribeApi {
   meetings: {
@@ -49,6 +54,10 @@ export interface ScribeApi {
     models: () => Promise<ModelListResult>
     test: (model: string) => Promise<ConnectionTestResult>
   }
+  chat: {
+    ask: (question: string, history: ChatTurn[]) => Promise<void>
+    cancel: () => Promise<void>
+  }
   on: (channel: EventChannel, listener: (...args: never[]) => void) => () => void
 }
 
@@ -59,6 +68,7 @@ declare global {
 }
 
 export type {
+  ChatTurn,
   ConcentrateModel,
   ConnectionTestResult,
   Meeting,

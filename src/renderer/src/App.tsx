@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { Meeting, MeetingSummary, TranscriptSegment } from './env'
+import type { ChatTurn, Meeting, MeetingSummary, TranscriptSegment } from './env'
 import { MicRecorder } from './recorder'
 import Sidebar from './components/Sidebar'
 import MeetingView from './components/MeetingView'
 import SettingsView from './components/SettingsView'
 import Onboarding from './components/Onboarding'
+import ChatView from './components/ChatView'
 import Logo from './components/Logo'
+import { applyAppearance } from './appearance'
 
 export default function App(): React.JSX.Element {
   const [meetings, setMeetings] = useState<MeetingSummary[]>([])
@@ -15,6 +17,10 @@ export default function App(): React.JSX.Element {
   const [enhancing, setEnhancing] = useState(false)
   const [enhanceBuffer, setEnhanceBuffer] = useState('')
   const [showSettings, setShowSettings] = useState(false)
+  const [showChat, setShowChat] = useState(false)
+  const [chatLog, setChatLog] = useState<ChatTurn[]>([])
+  const [chatStreaming, setChatStreaming] = useState(false)
+  const [chatBuffer, setChatBuffer] = useState('')
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [banner, setBanner] = useState<string | null>(null)
 
@@ -29,6 +35,7 @@ export default function App(): React.JSX.Element {
   useEffect(() => {
     void refreshList()
     void window.scribe.settings.get().then((settings) => {
+      applyAppearance(settings)
       if (!settings.onboardingComplete) setShowOnboarding(true)
     })
   }, [refreshList])
@@ -60,6 +67,23 @@ export default function App(): React.JSX.Element {
         setMeeting((current) => (current ? { ...current, enhancedNotes: fullText } : current))
       }
     })
+    const offTitled = window.scribe.on('meeting:titled', (meetingId: string, title: string) => {
+      setMeeting((current) => (current && current.id === meetingId ? { ...current, title } : current))
+      void refreshList()
+    })
+    const offChatDelta = window.scribe.on('chat:delta', (delta: string) => {
+      setChatBuffer((text) => text + delta)
+    })
+    const offChatDone = window.scribe.on('chat:done', (fullText: string) => {
+      setChatStreaming(false)
+      setChatBuffer('')
+      setChatLog((log) => [...log, { role: 'assistant', text: fullText }])
+    })
+    const offChatError = window.scribe.on('chat:error', (message: string) => {
+      setChatStreaming(false)
+      setChatBuffer('')
+      setChatLog((log) => [...log, { role: 'assistant', text: `⚠️ ${message}` }])
+    })
     const offEnhanceError = window.scribe.on('enhance:error', (meetingId: string, message: string) => {
       if (meetingRef.current?.id === meetingId) {
         setEnhancing(false)
@@ -68,13 +92,17 @@ export default function App(): React.JSX.Element {
       }
     })
     return () => {
+      offTitled()
+      offChatDelta()
+      offChatDone()
+      offChatError()
       offSegment()
       offTranscriptError()
       offDelta()
       offDone()
       offEnhanceError()
     }
-  }, [])
+  }, [refreshList])
 
   // recording timer
   useEffect(() => {
@@ -86,6 +114,7 @@ export default function App(): React.JSX.Element {
 
   const selectMeeting = useCallback(async (id: string) => {
     setShowSettings(false)
+    setShowChat(false)
     setEnhanceBuffer('')
     setEnhancing(false)
     setMeeting(await window.scribe.meetings.get(id))
@@ -93,6 +122,7 @@ export default function App(): React.JSX.Element {
 
   const createMeeting = useCallback(async () => {
     setShowSettings(false)
+    setShowChat(false)
     const created = await window.scribe.meetings.create()
     await refreshList()
     setEnhanceBuffer('')
@@ -177,6 +207,21 @@ export default function App(): React.JSX.Element {
     }
   }, [refreshList, runEnhance])
 
+  const askChat = useCallback((question: string) => {
+    setChatLog((log) => {
+      void window.scribe.chat.ask(question, log)
+      return [...log, { role: 'user', text: question }]
+    })
+    setChatStreaming(true)
+    setChatBuffer('')
+  }, [])
+
+  const cancelChat = useCallback(() => {
+    void window.scribe.chat.cancel()
+    setChatStreaming(false)
+    setChatBuffer('')
+  }, [])
+
   const cancelEnhance = useCallback(async () => {
     const current = meetingRef.current
     if (!current) return
@@ -194,7 +239,15 @@ export default function App(): React.JSX.Element {
         onSelect={(id) => void selectMeeting(id)}
         onCreate={() => void createMeeting()}
         onDelete={(id) => void deleteMeeting(id)}
-        onOpenSettings={() => setShowSettings(true)}
+        onOpenSettings={() => {
+          setShowSettings(true)
+          setShowChat(false)
+        }}
+        onOpenChat={() => {
+          setShowChat(true)
+          setShowSettings(false)
+        }}
+        chatActive={showChat}
       />
       <main className="content">
         {banner && (
@@ -207,6 +260,14 @@ export default function App(): React.JSX.Element {
         )}
         {showSettings ? (
           <SettingsView onClose={() => setShowSettings(false)} />
+        ) : showChat ? (
+          <ChatView
+            log={chatLog}
+            streaming={chatStreaming}
+            streamBuffer={chatBuffer}
+            onAsk={askChat}
+            onCancel={cancelChat}
+          />
         ) : meeting ? (
           <MeetingView
             meeting={meeting}

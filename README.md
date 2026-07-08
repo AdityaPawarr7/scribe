@@ -11,7 +11,9 @@ Record a meeting, take rough notes while you talk, and let AI merge them with th
 - **Local transcription** — audio is transcribed on your machine with [whisper.cpp](https://github.com/ggerganov/whisper.cpp). Your recordings never leave your laptop.
 - **Your notes stay yours** — everything is stored as plain JSON + WAV on disk. No accounts, no backend, no sync servers.
 - **Bring your own key 🔑** — no subscription, no middleman markup. Plug in one [Concentrate AI](https://concentrate.ai) key and get 150+ models through a single door — Claude, GPT, Gemini, and everything else in the [model fortress](https://concentrate.ai/models). Switch models from a dropdown right in the app. **No budget? Concentrate serves `gpt-oss-120b` for free**, so you can run Scribe end-to-end at $0.
-- **Text-only egress** — enhancement is the only step that calls an external API, and it sends text, never audio.
+- **Ask your notes 💬** — a built-in chat that answers questions across every meeting you've captured ("what did I promise last week?"), grounded in your notes library.
+- **Make it yours** — dark/light liquid-glass themes, six accent colors, and font packs (System, Typewriter, Monospace, Serif), all in Settings.
+- **Text-only egress** — enhancement and chat are the only steps that call an external API, and they send text, never audio.
 
 ## How it works
 
@@ -23,7 +25,7 @@ you type rough notes during the meeting ─────────────�
 
 1. Hit **Record** when your meeting starts. Scribe captures your microphone and transcribes it locally in ~15-second chunks, so the transcript appears live.
 2. Type fragments into **My notes** — just the things *you* care about. Don't try to keep up with the conversation; that's the transcript's job.
-3. Hit **Stop** — that's it. The moment a recording ends, Scribe automatically merges your fragments with the transcript into clean, structured notes (toggle off in Settings if you prefer the manual ✦ button). Notes refer to you by the name you gave during setup, not "the speaker".
+3. Hit **Stop** — that's it. The moment a recording ends, Scribe automatically merges your fragments with the transcript into clean, structured notes (toggle off in Settings if you prefer the manual ✦ button), refers to you by name instead of "the speaker", and titles the meeting from what was actually discussed.
 
 ## Getting started
 
@@ -62,7 +64,7 @@ Scribe is meant to grow into a full open meeting workspace. Rough order:
 - [ ] **System audio capture** (macOS ScreenCaptureKit helper) — hear both sides of a call
 - [ ] Calendar integration — auto-create meetings from your calendar, attach attendees
 - [ ] Note templates (1:1s, pitches, standups, user interviews)
-- [ ] Ask-your-meetings chat (search + Q&A across all transcripts)
+- [x] Ask-your-meetings chat (Q&A across all your notes)
 - [ ] Speaker diarization
 - [ ] Share/export (Markdown, email, Notion, Slack)
 - [ ] MCP server — expose your meeting notes to any AI agent

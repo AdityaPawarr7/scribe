@@ -41,6 +41,13 @@ interface Props {
 
 type Tab = 'notes' | 'enhanced'
 
+function formatNoteDate(timestamp: number): string {
+  const d = new Date(timestamp)
+  const date = d.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })
+  const time = d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+  return `${date} at ${time}`
+}
+
 function formatClock(totalSeconds: number): string {
   const m = Math.floor(totalSeconds / 60)
   const s = totalSeconds % 60
@@ -85,7 +92,7 @@ export default function MeetingView(props: Props): React.JSX.Element {
         <input
           className="title-input"
           value={meeting.title}
-          placeholder="Untitled meeting"
+          placeholder="Untitled"
           onChange={(event) => props.onUpdate({ title: event.target.value })}
         />
         <div className="header-actions">
@@ -119,6 +126,7 @@ export default function MeetingView(props: Props): React.JSX.Element {
 
       <div className="meeting-body">
         <section className="editor-pane">
+          <div className="note-date">{formatNoteDate(meeting.createdAt)}</div>
           <div className="tabs">
             <button className={tab === 'notes' ? 'tab active' : 'tab'} onClick={() => setTab('notes')}>
               My notes

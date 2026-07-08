@@ -12,11 +12,11 @@
   --glass-3: rgba(255, 255, 255, 0.16); /* pressed / selected */
   --stroke: rgba(255, 255, 255, 0.1);
   --stroke-strong: rgba(255, 255, 255, 0.2);
-  --scrim: rgba(24, 21, 18, 0.58); /* keeps text readable over any desktop */
-  --sheet: rgba(32, 29, 26, 0.62);
+  --scrim: rgba(24, 21, 18, 0.4); /* keeps text readable over any desktop */
+  --sheet: rgba(32, 29, 26, 0.5);
   --accent: #5ee0c4;
-  --accent-soft: rgba(94, 224, 196, 0.18);
-  --accent-text: #04241a;
+  --accent-soft: color-mix(in srgb, var(--accent) 18%, transparent);
+  --accent-text: rgba(8, 18, 15, 0.9);
   --danger: #ff6b57;
   --ok: #8fd18f;
   --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.14);
@@ -29,8 +29,7 @@ body,
 }
 
 body {
-  font-family: 'American Typewriter', 'Courier Prime', 'Courier New', ui-monospace, monospace;
-  font-weight: 300; /* AT Light — the regular cut is too heavy for UI */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: var(--scrim); /* vibrancy shows through beneath this tint */
   color: var(--text);
   font-size: 14px;
@@ -75,7 +74,7 @@ button {
   color: var(--accent);
   font-weight: 600;
   font-size: 15px;
-  text-shadow: 0 0 18px rgba(94, 224, 196, 0.35);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--accent) 35%, transparent);
 }
 
 .wordmark-logo {
@@ -169,7 +168,7 @@ button {
 
 /* ---- glass buttons ---- */
 .primary {
-  background: linear-gradient(180deg, #93f1d6, #3fd4ac);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 72%, white), color-mix(in srgb, var(--accent) 88%, black));
   color: var(--accent-text);
   border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 999px;
@@ -177,7 +176,7 @@ button {
   font-weight: 600;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.4),
-    0 4px 14px rgba(94, 224, 196, 0.25);
+    0 4px 14px color-mix(in srgb, var(--accent) 25%, transparent);
   transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 
@@ -185,7 +184,7 @@ button {
   transform: translateY(-1px);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.4),
-    0 6px 18px rgba(94, 224, 196, 0.35);
+    0 6px 18px color-mix(in srgb, var(--accent) 35%, transparent);
 }
 
 .primary:disabled {
@@ -206,7 +205,7 @@ button {
 }
 
 .secondary.active {
-  border-color: rgba(94, 224, 196, 0.5);
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
   color: var(--accent);
   background: var(--accent-soft);
 }
@@ -253,7 +252,7 @@ button {
 
 .empty-logo {
   color: var(--accent);
-  filter: drop-shadow(0 0 24px rgba(94, 224, 196, 0.35));
+  filter: drop-shadow(0 0 24px color-mix(in srgb, var(--accent) 35%, transparent));
 }
 
 .empty-state h1 {
@@ -665,7 +664,7 @@ button {
   align-items: center;
   justify-content: center;
   background:
-    radial-gradient(ellipse 70% 55% at 50% -10%, rgba(94, 224, 196, 0.18), transparent),
+    radial-gradient(ellipse 70% 55% at 50% -10%, color-mix(in srgb, var(--accent) 18%, transparent), transparent),
     rgba(18, 16, 14, 0.45);
   backdrop-filter: blur(28px) saturate(1.5);
   -webkit-app-region: drag;
@@ -725,7 +724,7 @@ button {
   align-self: center;
   color: var(--accent);
   animation: grain-spin 32s linear infinite;
-  filter: drop-shadow(0 0 24px rgba(94, 224, 196, 0.4));
+  filter: drop-shadow(0 0 24px color-mix(in srgb, var(--accent) 40%, transparent));
 }
 
 @keyframes grain-spin {
@@ -907,14 +906,14 @@ button {
   box-shadow:
     inset 0 1px 1px rgba(255, 255, 255, 0.5),
     inset 0 -2px 6px rgba(0, 0, 0, 0.12),
-    0 4px 16px rgba(94, 224, 196, 0.3);
+    0 4px 16px color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 .primary:hover:not(:disabled) {
   box-shadow:
     inset 0 1px 1px rgba(255, 255, 255, 0.5),
     inset 0 -2px 6px rgba(0, 0, 0, 0.12),
-    0 6px 22px rgba(94, 224, 196, 0.42);
+    0 6px 22px color-mix(in srgb, var(--accent) 42%, transparent);
 }
 
 /* ---- settings rows ---- */
@@ -971,8 +970,8 @@ button {
 
 .setting-input:focus {
   outline: none;
-  border-color: rgba(94, 224, 196, 0.55);
-  box-shadow: 0 0 0 3px rgba(94, 224, 196, 0.15);
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
 }
 
 .setting-control {
@@ -994,11 +993,11 @@ button {
 }
 
 .toggle.on {
-  background: linear-gradient(180deg, #93f1d6, #3fd4ac);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 72%, white), color-mix(in srgb, var(--accent) 88%, black));
   border-color: rgba(255, 255, 255, 0.3);
   box-shadow:
     inset 0 1px 1px rgba(255, 255, 255, 0.4),
-    0 2px 10px rgba(94, 224, 196, 0.35);
+    0 2px 10px color-mix(in srgb, var(--accent) 35%, transparent);
 }
 
 .toggle-thumb {
@@ -1234,4 +1233,245 @@ b,
   border: 1px solid var(--stroke);
   padding: 5px 10px;
   text-align: left;
+}
+
+/* =============================================================
+   Light theme, font packs, scrollbars, chat, appearance controls
+   ============================================================= */
+:root[data-theme='light'] {
+  --text: rgba(32, 30, 27, 0.92);
+  --text-dim: rgba(32, 30, 27, 0.55);
+  --glass-1: rgba(255, 255, 255, 0.3);
+  --glass-2: rgba(255, 255, 255, 0.48);
+  --glass-3: rgba(255, 255, 255, 0.66);
+  --stroke: rgba(0, 0, 0, 0.08);
+  --stroke-strong: rgba(0, 0, 0, 0.14);
+  --scrim: rgba(246, 244, 240, 0.45);
+  --sheet: rgba(252, 250, 247, 0.55);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  --specular:
+    inset 0 1px 1px rgba(255, 255, 255, 0.75),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.25),
+    inset 1px 0 1px rgba(255, 255, 255, 0.35),
+    inset -1px 0 1px rgba(255, 255, 255, 0.35);
+  --accent-text: rgba(8, 18, 15, 0.9);
+}
+
+:root[data-theme='light'] .banner {
+  background: rgba(255, 200, 180, 0.5);
+}
+
+/* font packs */
+:root[data-font='typewriter'] body {
+  font-family: 'American Typewriter', 'Courier Prime', 'Courier New', ui-monospace, monospace;
+  font-weight: 300;
+}
+
+:root[data-font='mono'] body {
+  font-family: ui-monospace, 'SF Mono', Menlo, Monaco, monospace;
+}
+
+:root[data-font='serif'] body {
+  font-family: 'New York', 'Iowan Old Style', 'Palatino', Georgia, serif;
+}
+
+/* scrollbars that belong to the glass */
+::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--glass-3);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--stroke-strong);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Apple Notes-style date line */
+.note-date {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 12px;
+  padding: 0 0 10px;
+}
+
+/* appearance controls */
+.segmented {
+  display: flex;
+  gap: 3px;
+  background: var(--glass-1);
+  border: 1px solid var(--stroke);
+  border-radius: 999px;
+  padding: 3px;
+  box-shadow: var(--specular);
+}
+
+.seg {
+  padding: 6px 14px;
+  border-radius: 999px;
+  color: var(--text-dim);
+  font-size: 13px;
+  transition: background 0.2s ease;
+}
+
+.seg.active {
+  background: var(--glass-3);
+  color: var(--text);
+  font-weight: 500;
+  box-shadow: var(--glass-highlight);
+}
+
+.swatches {
+  display: flex;
+  gap: 10px;
+}
+
+.swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.45),
+    0 1px 4px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.15s ease;
+  padding: 0;
+}
+
+.swatch:hover {
+  transform: scale(1.15);
+}
+
+.swatch.selected {
+  border-color: var(--text);
+  transform: scale(1.15);
+}
+
+/* ---- chat ---- */
+.chat-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.chat-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px 32px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+.chat-empty {
+  margin: auto;
+  text-align: center;
+  color: var(--text-dim);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  max-width: 380px;
+}
+
+.chat-empty h2 {
+  color: var(--text);
+}
+
+.chat-empty svg {
+  color: var(--accent);
+  filter: drop-shadow(0 0 18px color-mix(in srgb, var(--accent) 35%, transparent));
+}
+
+.chat-bubble {
+  max-width: 82%;
+  padding: 10px 14px;
+  border-radius: 18px;
+  line-height: 1.55;
+  font-size: 14px;
+  word-wrap: break-word;
+}
+
+.chat-bubble.user {
+  align-self: flex-end;
+  background: color-mix(in srgb, var(--accent) 26%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  box-shadow: var(--glass-highlight);
+  border-bottom-right-radius: 6px;
+}
+
+.chat-bubble.assistant {
+  align-self: flex-start;
+  background: var(--glass-2);
+  border: 1px solid var(--stroke);
+  box-shadow: var(--specular);
+  border-bottom-left-radius: 6px;
+}
+
+.chat-bubble.assistant p,
+.chat-bubble.assistant ul,
+.chat-bubble.assistant ol {
+  margin-bottom: 8px;
+}
+
+.chat-bubble.assistant :last-child {
+  margin-bottom: 0;
+}
+
+.chat-bubble.assistant code {
+  background: var(--glass-1);
+  padding: 1px 5px;
+  border-radius: 5px;
+  font-size: 13px;
+}
+
+.chat-inputbar {
+  display: flex;
+  gap: 8px;
+  padding: 12px 32px 20px;
+  width: 100%;
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+.chat-inputbar input {
+  flex: 1;
+  background: var(--glass-1);
+  border: 1px solid var(--stroke);
+  border-radius: 999px;
+  color: var(--text);
+  padding: 10px 16px;
+  font: inherit;
+  font-size: 14px;
+  box-shadow: var(--specular);
+}
+
+.chat-inputbar input:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.settings-button.active {
+  background: var(--glass-2);
+  color: var(--accent);
 }

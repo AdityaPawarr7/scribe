@@ -1,13 +1,14 @@
-import { app, BrowserWindow, ipcMain, shell, systemPreferences } from 'electron'
+import { app, BrowserWindow, ipcMain, nativeTheme, shell, systemPreferences } from 'electron'
 import { cpSync, existsSync } from 'fs'
 import { join } from 'path'
 import { loadSettings, saveSettings, whisperStatus } from './settings'
 import * as store from './store'
 import { RecordingSession } from './transcriber'
-import { enhanceMeeting } from './enhancer'
+import { enhanceMeeting, generateTitle } from './enhancer'
+import { askChat } from './chat'
 import { downloadModel } from './modelDownload'
 import { listModels, testConnection } from './concentrate'
-import type { Meeting, Settings } from '@shared/types'
+import type { ChatTurn, Meeting, Settings } from '@shared/types'
 
 // The app was called Muesli before v0.2 — carry existing meetings,
 // settings, and the downloaded whisper model over to the new data dir.
@@ -128,6 +129,16 @@ ipcMain.handle('enhance:run', (_e, meetingId: string) => {
       activeEnhancements.delete(meetingId)
       store.updateMeeting(meetingId, { enhancedNotes: fullText })
       send('enhance:done', meetingId, fullText)
+      // name the meeting from its content once notes exist
+      const current = store.getMeeting(meetingId)
+      if (current && (current.title.trim() === '' || current.title.trim() === 'Untitled')) {
+        void generateTitle(current).then((title) => {
+          if (title && store.getMeeting(meetingId)) {
+            store.updateMeeting(meetingId, { title })
+            send('meeting:titled', meetingId, title)
+          }
+        })
+      }
     },
     onError: (message) => {
       activeEnhancements.delete(meetingId)
@@ -142,13 +153,38 @@ ipcMain.handle('enhance:cancel', (_e, meetingId: string) => {
   activeEnhancements.delete(meetingId)
 })
 
+// ---- chat ----
+let activeChat: { cancel: () => void } | null = null
+ipcMain.handle('chat:ask', (_e, question: string, history: ChatTurn[]) => {
+  activeChat?.cancel()
+  activeChat = askChat(question, history, {
+    onDelta: (delta) => send('chat:delta', delta),
+    onDone: (fullText) => {
+      activeChat = null
+      send('chat:done', fullText)
+    },
+    onError: (message) => {
+      activeChat = null
+      send('chat:error', message)
+    }
+  })
+})
+ipcMain.handle('chat:cancel', () => {
+  activeChat?.cancel()
+  activeChat = null
+})
+
 // ---- concentrate ----
 ipcMain.handle('concentrate:models', () => listModels())
 ipcMain.handle('concentrate:test', (_e, model: string) => testConnection(model))
 
 // ---- settings / whisper ----
 ipcMain.handle('settings:get', () => loadSettings())
-ipcMain.handle('settings:set', (_e, patch: Partial<Settings>) => saveSettings(patch))
+ipcMain.handle('settings:set', (_e, patch: Partial<Settings>) => {
+  const next = saveSettings(patch)
+  if (patch.theme) nativeTheme.themeSource = next.theme
+  return next
+})
 ipcMain.handle('whisper:status', () => whisperStatus())
 ipcMain.handle('whisper:downloadModel', async () => {
   await downloadModel((progress) => send('whisper:downloadProgress', progress))
@@ -157,6 +193,7 @@ ipcMain.handle('whisper:downloadModel', async () => {
 
 app.whenReady().then(() => {
   migrateMuesliData()
+  nativeTheme.themeSource = loadSettings().theme
   createWindow()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

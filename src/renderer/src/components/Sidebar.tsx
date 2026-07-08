@@ -9,6 +9,8 @@ interface Props {
   onCreate: () => void
   onDelete: (id: string) => void
   onOpenSettings: () => void
+  onOpenChat: () => void
+  chatActive: boolean
 }
 
 function formatDate(timestamp: number): string {
@@ -64,6 +66,12 @@ export default function Sidebar(props: Props): React.JSX.Element {
         ))}
         {props.meetings.length === 0 && <div className="meeting-list-empty">No meetings yet</div>}
       </nav>
+      <button
+        className={`settings-button ${props.chatActive ? 'active' : ''}`}
+        onClick={props.onOpenChat}
+      >
+        ✳ Ask your notes
+      </button>
       <button className="settings-button" onClick={props.onOpenSettings}>
         ⚙ Settings
       </button>

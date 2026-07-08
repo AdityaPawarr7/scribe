@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type {
+  ChatTurn,
   ConnectionTestResult,
   Meeting,
   MeetingSummary,
@@ -17,7 +18,11 @@ const EVENT_CHANNELS = [
   'enhance:delta',
   'enhance:done',
   'enhance:error',
-  'whisper:downloadProgress'
+  'whisper:downloadProgress',
+  'meeting:titled',
+  'chat:delta',
+  'chat:done',
+  'chat:error'
 ] as const
 
 export type EventChannel = (typeof EVENT_CHANNELS)[number]
@@ -44,6 +49,11 @@ const api = {
   settings: {
     get: (): Promise<Settings> => ipcRenderer.invoke('settings:get'),
     set: (patch: Partial<Settings>): Promise<Settings> => ipcRenderer.invoke('settings:set', patch)
+  },
+  chat: {
+    ask: (question: string, history: ChatTurn[]): Promise<void> =>
+      ipcRenderer.invoke('chat:ask', question, history),
+    cancel: (): Promise<void> => ipcRenderer.invoke('chat:cancel')
   },
   concentrate: {
     models: (): Promise<ModelListResult> => ipcRenderer.invoke('concentrate:models'),

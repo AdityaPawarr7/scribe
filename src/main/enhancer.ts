@@ -1,7 +1,7 @@
 import { loadSettings } from './settings'
 import type { Meeting } from '@shared/types'
 
-const CONCENTRATE_URL = 'https://api.concentrate.ai/v1/responses'
+export const CONCENTRATE_URL = 'https://api.concentrate.ai/v1/responses'
 
 const SYSTEM_PROMPT = `You are a meeting-notes editor. You receive a meeting transcript and the rough notes the user typed during the meeting. Produce a single polished set of meeting notes in Markdown.
 
@@ -133,7 +133,7 @@ async function streamEnhancement(
 }
 
 /** Minimal SSE parser: yields the JSON payload of each `data:` line. */
-async function* parseSse(
+export async function* parseSse(
   body: ReadableStream<Uint8Array>,
   signal: AbortSignal
 ): AsyncGenerator<StreamEvent> {
@@ -164,7 +164,7 @@ async function* parseSse(
   }
 }
 
-async function describeHttpError(response: Response): Promise<string> {
+export async function describeHttpError(response: Response): Promise<string> {
   const hints: Record<number, string> = {
     401: 'invalid API key',
     402: 'insufficient Concentrate credits',
@@ -186,4 +186,40 @@ function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60)
   const s = Math.floor(seconds % 60)
   return `${m}:${String(s).padStart(2, '0')}`
+}
+
+/** Ask the model for a short title once notes exist. Returns null on any failure. */
+export async function generateTitle(meeting: Meeting): Promise<string | null> {
+  const settings = loadSettings()
+  const apiKey = settings.concentrateApiKey || process.env.CONCENTRATE_API_KEY || ''
+  if (!apiKey) return null
+
+  const source = `${meeting.notes}\n${meeting.transcript.map((s) => s.text).join(' ')}`.slice(0, 6000)
+  try {
+    const response = await fetch(CONCENTRATE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model: settings.model || 'claude-opus-4.8',
+        instructions:
+          'Title this meeting in 2-6 words based on what it was actually about. Reply with the title only — no quotes, no trailing punctuation.',
+        input: source,
+        max_output_tokens: 2000
+      })
+    })
+    if (!response.ok) return null
+    const parsed = (await response.json()) as {
+      output?: Array<{ type?: string; content?: Array<{ type?: string; text?: string }> }>
+    }
+    const message = (parsed.output ?? []).find((item) => item.type === 'message')
+    const title = (message?.content ?? [])
+      .map((block) => block.text ?? '')
+      .join('')
+      .trim()
+      .replace(/^["'\u201c]|["'\u201d.]$/g, '')
+      .slice(0, 60)
+    return title || null
+  } catch {
+    return null
+  }
 }

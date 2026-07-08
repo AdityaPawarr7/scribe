@@ -12,7 +12,10 @@ const DEFAULTS: Settings = {
   language: 'en',
   onboardingComplete: false,
   userName: '',
-  autoEnhance: true
+  autoEnhance: true,
+  theme: 'dark',
+  accent: '#5ee0c4',
+  fontPack: 'system'
 }
 
 const WHISPER_CANDIDATES = [

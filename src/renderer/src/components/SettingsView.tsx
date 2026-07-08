@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { ModelDownloadProgress, Settings, WhisperStatus } from '../env'
 import ModelSelect from './ModelSelect'
+import { ACCENTS, FONT_PACKS, applyAppearance } from '../appearance'
 
 interface Props {
   onClose: () => void
@@ -36,7 +37,12 @@ export default function SettingsView(props: Props): React.JSX.Element {
   }, [])
 
   const save = (patch: Partial<Settings>): void => {
-    setSettings((current) => (current ? { ...current, ...patch } : current))
+    setSettings((current) => {
+      if (!current) return current
+      const next = { ...current, ...patch }
+      applyAppearance(next)
+      return next
+    })
     void window.scribe.settings.set(patch).then(() => window.scribe.whisper.status().then(setStatus))
   }
 
@@ -89,6 +95,62 @@ export default function SettingsView(props: Props): React.JSX.Element {
             <span>Enhance the moment a recording stops</span>
           </div>
           <Toggle on={settings.autoEnhance} onChange={(on) => save({ autoEnhance: on })} />
+        </div>
+
+        <h3>Appearance</h3>
+        <div className="setting-row">
+          <div className="setting-info">
+            <strong>Theme</strong>
+            <span>Glass, two ways</span>
+          </div>
+          <div className="segmented">
+            {(['dark', 'light'] as const).map((theme) => (
+              <button
+                key={theme}
+                className={settings.theme === theme ? 'seg active' : 'seg'}
+                onClick={() => save({ theme })}
+              >
+                {theme === 'dark' ? '☾ Dark' : '☀ Light'}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="setting-row">
+          <div className="setting-info">
+            <strong>Accent</strong>
+            <span>Buttons, glows, the logo</span>
+          </div>
+          <div className="swatches">
+            {ACCENTS.map((accent) => (
+              <button
+                key={accent.hex}
+                title={accent.name}
+                className={`swatch ${settings.accent === accent.hex ? 'selected' : ''}`}
+                style={{ background: accent.hex }}
+                onClick={() => save({ accent: accent.hex })}
+              />
+            ))}
+          </div>
+        </div>
+        <div className="setting-row">
+          <div className="setting-info">
+            <strong>Font</strong>
+            <span>Applies everywhere</span>
+          </div>
+          <div className="setting-control">
+            <select
+              className="model-select"
+              style={{ marginTop: 0 }}
+              value={settings.fontPack}
+              onChange={(event) => save({ fontPack: event.target.value as Settings['fontPack'] })}
+            >
+              {FONT_PACKS.map((pack) => (
+                <option key={pack.id} value={pack.id}>
+                  {pack.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <h3>AI</h3>
