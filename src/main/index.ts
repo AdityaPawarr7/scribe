@@ -10,16 +10,21 @@ import { downloadModel } from './modelDownload'
 import { listModels, testConnection } from './concentrate'
 import type { ChatTurn, Meeting, Settings } from '@shared/types'
 
-// The app was called Muesli before v0.2 — carry existing meetings,
-// settings, and the downloaded whisper model over to the new data dir.
-function migrateMuesliData(): void {
-  const oldDir = join(app.getPath('appData'), 'muesli')
+// Earlier builds stored data under 'muesli' (pre-rename) or 'scribe'
+// (dev, lowercase package name) — carry meetings, settings, and the
+// whisper model over to this build's data dir.
+function migrateOldData(): void {
   const newDir = app.getPath('userData')
-  if (existsSync(oldDir) && !existsSync(join(newDir, 'settings.json'))) {
-    try {
-      cpSync(oldDir, newDir, { recursive: true })
-    } catch {
-      // fall back to a fresh profile rather than failing startup
+  if (existsSync(join(newDir, 'settings.json'))) return
+  for (const oldName of ['scribe', 'muesli']) {
+    const oldDir = join(app.getPath('appData'), oldName)
+    if (oldDir !== newDir && existsSync(join(oldDir, 'settings.json'))) {
+      try {
+        cpSync(oldDir, newDir, { recursive: true })
+      } catch {
+        // fall back to a fresh profile rather than failing startup
+      }
+      return
     }
   }
 }
@@ -192,7 +197,7 @@ ipcMain.handle('whisper:downloadModel', async () => {
 })
 
 app.whenReady().then(() => {
-  migrateMuesliData()
+  migrateOldData()
   nativeTheme.themeSource = loadSettings().theme
   createWindow()
   app.on('activate', () => {

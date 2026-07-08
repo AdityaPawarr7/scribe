@@ -27,7 +27,16 @@ you type rough notes during the meeting ─────────────�
 2. Type fragments into **My notes** — just the things *you* care about. Don't try to keep up with the conversation; that's the transcript's job.
 3. Hit **Stop** — that's it. The moment a recording ends, Scribe automatically merges your fragments with the transcript into clean, structured notes (toggle off in Settings if you prefer the manual ✦ button), refers to you by name instead of "the speaker", and titles the meeting from what was actually discussed.
 
-## Getting started
+## Install
+
+**[⬇ Download Scribe for macOS (Apple Silicon)](https://github.com/AdityaPawarr7/scribe/releases/latest)** — open the `.dmg`, drag Scribe to Applications.
+
+Two notes for the first launch:
+
+- Scribe is a community build and isn't code-signed yet, so macOS will warn you the first time: **right-click the app → Open → Open**. (Once, ever.)
+- Local transcription needs whisper.cpp: `brew install whisper-cpp`, then download the speech model from Scribe's onboarding or Settings.
+
+### Or run from source
 
 Requirements: macOS, Node 20+, and whisper.cpp.
 
@@ -35,7 +44,8 @@ Requirements: macOS, Node 20+, and whisper.cpp.
 brew install whisper-cpp   # local transcription engine
 git clone https://github.com/AdityaPawarr7/scribe && cd scribe
 npm install
-npm run dev
+npm run dev                # develop
+npm run dist               # build your own installable .app/.dmg
 ```
 
 On first launch Scribe walks you through everything: downloading the speech model (one click, ~150MB, one-time), pasting your [Concentrate AI](https://concentrate.ai) key (`sk-cn-…`, or export `CONCENTRATE_API_KEY`), picking a model, and testing the connection — including a one-click "use the free model" path via `gpt-oss-120b`. The default model is `claude-opus-4.8`; switch anytime from the dropdown in the meeting header or Settings.
@@ -69,7 +79,7 @@ Scribe is meant to grow into a full open meeting workspace. Rough order:
 - [ ] Share/export (Markdown, email, Notion, Slack)
 - [ ] MCP server — expose your meeting notes to any AI agent
 - [ ] Windows/Linux support
-- [ ] Packaged releases (signed .dmg)
+- [x] Packaged releases (.dmg — signing/notarization still to come)
 
 Contributions welcome — the codebase is intentionally small and boring.
 

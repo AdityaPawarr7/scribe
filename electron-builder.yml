@@ -1,0 +1,25 @@
+appId: dev.scribe.app
+productName: Scribe
+directories:
+  buildResources: build
+  output: release
+files:
+  - out/**
+  - package.json
+  - '!src/**'
+  - '!assets/**'
+asar: true
+npmRebuild: false
+mac:
+  category: public.app-category.productivity
+  icon: build/icon.icns
+  target:
+    - target: dmg
+      arch: arm64
+  # unsigned local/community build — right-click → Open on first launch
+  identity: null
+  extendInfo:
+    NSMicrophoneUsageDescription: Scribe records your microphone during meetings to transcribe them locally on your Mac.
+dmg:
+  title: Scribe
+  icon: build/icon.icns

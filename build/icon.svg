@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2c2a27"/>
+      <stop offset="1" stop-color="#171614"/>
+    </linearGradient>
+    <linearGradient id="grain" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8df0d5"/>
+      <stop offset="1" stop-color="#3fd4ac"/>
+    </linearGradient>
+  </defs>
+  <rect x="64" y="64" width="896" height="896" rx="200" fill="url(#bg)"/>
+  <rect x="64" y="64" width="896" height="896" rx="200" fill="none" stroke="#ffffff" stroke-opacity="0.12" stroke-width="6"/>
+  <g transform="translate(512 512) scale(6.2)" fill="url(#grain)">
+    <path transform="rotate(0) translate(0 -24)" d="M0,-20 C8,-13 9,10 0,20 C-9,10 -8,-13 0,-20 Z"/>
+    <path transform="rotate(51.43) translate(0 -24)" d="M0,-20 C8,-13 9,10 0,20 C-9,10 -8,-13 0,-20 Z"/>
+    <path transform="rotate(102.86) translate(0 -24)" d="M0,-20 C8,-13 9,10 0,20 C-9,10 -8,-13 0,-20 Z"/>
+    <path transform="rotate(154.29) translate(0 -24)" d="M0,-20 C8,-13 9,10 0,20 C-9,10 -8,-13 0,-20 Z"/>
+    <path transform="rotate(205.71) translate(0 -24)" d="M0,-20 C8,-13 9,10 0,20 C-9,10 -8,-13 0,-20 Z"/>
+    <path transform="rotate(257.14) translate(0 -24)" d="M0,-20 C8,-13 9,10 0,20 C-9,10 -8,-13 0,-20 Z"/>
+    <path transform="rotate(308.57) translate(0 -24)" d="M0,-20 C8,-13 9,10 0,20 C-9,10 -8,-13 0,-20 Z"/>
+    <circle r="7.5"/>
+  </g>
+</svg>
