@@ -5,8 +5,8 @@ import { join } from 'path'
 import type { Settings, WhisperStatus } from '@shared/types'
 
 const DEFAULTS: Settings = {
-  anthropicApiKey: '',
-  model: 'claude-opus-4-8',
+  concentrateApiKey: '',
+  model: 'claude-opus-4.8',
   whisperBinaryPath: '',
   whisperModelPath: '',
   language: 'en'
@@ -26,7 +26,18 @@ function settingsPath(): string {
 export function loadSettings(): Settings {
   try {
     if (existsSync(settingsPath())) {
-      return { ...DEFAULTS, ...JSON.parse(readFileSync(settingsPath(), 'utf8')) }
+      const stored = JSON.parse(readFileSync(settingsPath(), 'utf8')) as Partial<Settings> & {
+        model?: string
+      }
+      // pre-Concentrate settings used Anthropic's dash-style IDs (claude-opus-4-8);
+      // the Concentrate fortress uses dots (claude-opus-4.8)
+      if (stored.model) {
+        stored.model = stored.model.replace(
+          /^claude-(opus|sonnet|haiku)-(\d)-(\d)$/,
+          'claude-$1-$2.$3'
+        )
+      }
+      return { ...DEFAULTS, ...stored }
     }
   } catch {
     // corrupt settings file — fall back to defaults

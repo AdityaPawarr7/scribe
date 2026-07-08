@@ -24,8 +24,9 @@ export interface MeetingSummary {
 }
 
 export interface Settings {
-  /** Anthropic API key; when empty the SDK falls back to ANTHROPIC_API_KEY / `ant auth login` profile */
-  anthropicApiKey: string
+  /** Concentrate AI API key (sk-cn…); when empty, falls back to CONCENTRATE_API_KEY */
+  concentrateApiKey: string
+  /** any model ID from the Concentrate model fortress (https://concentrate.ai/models) */
   model: string
   whisperBinaryPath: string
   whisperModelPath: string

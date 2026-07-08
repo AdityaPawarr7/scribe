@@ -1,7 +1,7 @@
 {
   "name": "muesli",
   "version": "0.1.0",
-  "description": "Open-source AI meeting notes — record, transcribe locally with whisper.cpp, and enhance your notes with Claude",
+  "description": "Open-source AI meeting notes — record, transcribe locally with whisper.cpp, and enhance your notes with any model via Concentrate AI",
   "main": "./out/main/index.js",
   "license": "MIT",
   "scripts": {
@@ -9,9 +9,6 @@
     "build": "electron-vite build",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "start": "electron-vite preview"
-  },
-  "dependencies": {
-    "@anthropic-ai/sdk": "^0.99.0"
   },
   "devDependencies": {
     "@types/react": "^18.3.12",

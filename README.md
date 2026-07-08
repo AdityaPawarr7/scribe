@@ -4,19 +4,19 @@
 
 - **Local transcription** — audio is transcribed on your machine with [whisper.cpp](https://github.com/ggerganov/whisper.cpp). Your recordings never leave your laptop.
 - **Your notes stay yours** — everything is stored as plain JSON + WAV on disk. No accounts, no backend, no sync servers.
-- **AI enhancement with Claude** — one click merges your rough notes with the transcript into structured notes (summary, decisions, action items). This is the only step that calls an external API, and it sends text only.
+- **AI enhancement, any model** — one click merges your rough notes with the transcript into structured notes (summary, decisions, action items), powered by [Concentrate AI](https://concentrate.ai): one API key, 150+ models. Pick Claude, GPT, Gemini, or anything else in the [model fortress](https://concentrate.ai/models) and switch per your taste. This is the only step that calls an external API, and it sends text only.
 
 ## How it works
 
 ```
 mic ──► 16kHz PCM ──► whisper.cpp (local) ──► live transcript ─┐
-                                                               ├──► Claude ──► enhanced notes
-you type rough notes during the meeting ──────────────────────┘
+                                                               ├──► Concentrate AI ──► enhanced notes
+you type rough notes during the meeting ──────────────────────┘        (model of your choice)
 ```
 
 1. Hit **Record** when your meeting starts. Muesli captures your microphone and transcribes it locally in ~15-second chunks, so the transcript appears live.
 2. Type fragments into **My notes** — just the things *you* care about. Don't try to keep up with the conversation; that's the transcript's job.
-3. Hit **✦ Enhance notes** when the meeting ends. Claude merges your fragments with the transcript into clean, structured notes.
+3. Hit **✦ Enhance notes** when the meeting ends. Your chosen model merges your fragments with the transcript into clean, structured notes.
 
 ## Getting started
 
@@ -33,7 +33,7 @@ First run:
 
 1. Open **Settings** (bottom of the sidebar).
 2. Download the Whisper model (one click, ~150MB, one-time).
-3. Add your Anthropic API key — or leave it empty if you have `ANTHROPIC_API_KEY` exported or are logged in via [`ant auth login`](https://platform.claude.com/docs/en/api/sdks/cli).
+3. Add your [Concentrate AI](https://concentrate.ai) API key (`sk-cn-…`) — or leave it empty if you have `CONCENTRATE_API_KEY` exported. Optionally pick a different model from the [fortress](https://concentrate.ai/models); the default is `claude-opus-4.8`.
 
 Then create a meeting and hit Record.
 
@@ -44,12 +44,12 @@ Then create a meeting and hit Record.
 | Piece | Where | What |
 |---|---|---|
 | `src/main/transcriber.ts` | Electron main | Accumulates PCM, writes WAV, shells out to `whisper-cli` in rolling 15s chunks |
-| `src/main/enhancer.ts` | Electron main | Streams the notes+transcript merge from the Claude API (`@anthropic-ai/sdk`) |
+| `src/main/enhancer.ts` | Electron main | Streams the notes+transcript merge from Concentrate AI (`POST /v1/responses`, SSE — plain `fetch`, no SDK) |
 | `src/main/store.ts` | Electron main | Meetings as plain JSON + WAV under the app's `userData` dir |
 | `src/renderer/src/recorder.ts` | Renderer | Mic capture via `getUserMedia` + AudioWorklet at 16kHz |
 | `src/renderer` | Renderer | React UI: meeting list, notes editor, live transcript, settings |
 
-No database, no server, no native modules — the only binary dependency is `whisper-cli`, discovered on `PATH`/Homebrew or configurable in Settings.
+No database, no server, no native modules, zero runtime npm dependencies in the main process — the only binary dependency is `whisper-cli`, discovered on `PATH`/Homebrew or configurable in Settings.
 
 ## Roadmap
 

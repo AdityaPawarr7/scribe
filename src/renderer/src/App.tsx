@@ -204,7 +204,7 @@ export default function App(): React.JSX.Element {
           <div className="empty-state">
             <div className="empty-logo">🥣</div>
             <h1>Muesli</h1>
-            <p>Open-source meeting notes. Record, transcribe locally, enhance with Claude.</p>
+            <p>Open-source meeting notes. Record, transcribe locally, enhance with the model of your choice.</p>
             <button className="primary" onClick={() => void createMeeting()}>
               New meeting
             </button>

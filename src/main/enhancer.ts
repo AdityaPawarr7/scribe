@@ -1,6 +1,7 @@
-import Anthropic from '@anthropic-ai/sdk'
 import { loadSettings } from './settings'
 import type { Meeting } from '@shared/types'
+
+const CONCENTRATE_URL = 'https://api.concentrate.ai/v1/responses'
 
 const SYSTEM_PROMPT = `You are a meeting-notes editor. You receive a meeting transcript and the rough notes the user typed during the meeting. Produce a single polished set of meeting notes in Markdown.
 
@@ -18,16 +19,20 @@ export interface EnhanceCallbacks {
   onError: (message: string) => void
 }
 
-export function enhanceMeeting(meeting: Meeting, callbacks: EnhanceCallbacks): { cancel: () => void } {
-  const settings = loadSettings()
-  // Zero-config fallback: the SDK resolves ANTHROPIC_API_KEY or an `ant auth login` profile
-  const client = new Anthropic(settings.anthropicApiKey ? { apiKey: settings.anthropicApiKey } : {})
+interface StreamEvent {
+  type: string
+  delta?: string
+  code?: string
+  message?: string
+  response?: { incomplete_details?: { reason?: string } }
+}
 
+function buildUserContent(meeting: Meeting): string {
   const transcriptText = meeting.transcript
     .map((segment) => `[${formatTime(segment.t)}] ${segment.text}`)
     .join('\n')
 
-  const userContent = `<my_rough_notes>
+  return `<my_rough_notes>
 ${meeting.notes.trim() || '(no notes taken)'}
 </my_rough_notes>
 
@@ -38,37 +43,139 @@ ${transcriptText || '(no transcript available)'}
 Meeting title: ${meeting.title}
 
 Write the enhanced meeting notes.`
+}
 
-  const stream = client.messages.stream({
-    model: settings.model || 'claude-opus-4-8',
-    max_tokens: 16000,
-    thinking: { type: 'adaptive' },
-    system: SYSTEM_PROMPT,
-    messages: [{ role: 'user', content: userContent }]
-  })
+export function enhanceMeeting(meeting: Meeting, callbacks: EnhanceCallbacks): { cancel: () => void } {
+  const settings = loadSettings()
+  const apiKey = settings.concentrateApiKey || process.env.CONCENTRATE_API_KEY || ''
+  const controller = new AbortController()
 
-  stream.on('text', (delta) => callbacks.onDelta(delta))
+  if (!apiKey) {
+    // report asynchronously so the caller's registration flow matches the happy path
+    queueMicrotask(() =>
+      callbacks.onError(
+        'No Concentrate API key — add one in Settings (or export CONCENTRATE_API_KEY)'
+      )
+    )
+    return { cancel: () => controller.abort() }
+  }
 
-  stream
-    .finalMessage()
-    .then((message) => {
-      const text = message.content
-        .filter((block) => block.type === 'text')
-        .map((block) => block.text)
-        .join('')
-      callbacks.onDone(text)
+  void streamEnhancement(meeting, apiKey, settings.model, controller.signal, callbacks)
+  return { cancel: () => controller.abort() }
+}
+
+async function streamEnhancement(
+  meeting: Meeting,
+  apiKey: string,
+  model: string,
+  signal: AbortSignal,
+  callbacks: EnhanceCallbacks
+): Promise<void> {
+  let fullText = ''
+  try {
+    const response = await fetch(CONCENTRATE_URL, {
+      method: 'POST',
+      signal,
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'text/event-stream',
+        Authorization: `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: model || 'claude-opus-4.8',
+        instructions: SYSTEM_PROMPT,
+        input: buildUserContent(meeting),
+        max_output_tokens: 16000,
+        stream: true
+      })
     })
-    .catch((error: unknown) => {
-      if (error instanceof Anthropic.APIError) {
-        callbacks.onError(`Claude API error (${error.status}): ${error.message}`)
-      } else if (error instanceof Error && error.name === 'AbortError') {
-        // cancelled by the user — no error to surface
-      } else {
-        callbacks.onError(error instanceof Error ? error.message : String(error))
+
+    if (!response.ok || !response.body) {
+      callbacks.onError(await describeHttpError(response))
+      return
+    }
+
+    for await (const event of parseSse(response.body, signal)) {
+      switch (event.type) {
+        case 'response.output_text.delta':
+          if (event.delta) {
+            fullText += event.delta
+            callbacks.onDelta(event.delta)
+          }
+          break
+        case 'response.completed':
+          callbacks.onDone(fullText)
+          return
+        case 'response.incomplete': {
+          const reason = event.response?.incomplete_details?.reason ?? 'unknown reason'
+          callbacks.onDone(fullText + `\n\n> ⚠️ Output was cut short (${reason}).`)
+          return
+        }
+        case 'response.failed':
+          callbacks.onError('The model failed to generate a response — try again or switch models in Settings')
+          return
+        case 'error':
+          callbacks.onError(`Concentrate error (${event.code ?? 'unknown'}): ${event.message ?? ''}`)
+          return
       }
-    })
+    }
+    // stream ended without a terminal event; keep whatever we got
+    if (fullText) callbacks.onDone(fullText)
+    else callbacks.onError('Stream ended unexpectedly with no output')
+  } catch (error) {
+    if (signal.aborted) return // cancelled by the user
+    callbacks.onError(error instanceof Error ? error.message : String(error))
+  }
+}
 
-  return { cancel: () => stream.abort() }
+/** Minimal SSE parser: yields the JSON payload of each `data:` line. */
+async function* parseSse(
+  body: ReadableStream<Uint8Array>,
+  signal: AbortSignal
+): AsyncGenerator<StreamEvent> {
+  const reader = body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+  try {
+    while (!signal.aborted) {
+      const { done, value } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true })
+      let newlineIndex: number
+      while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
+        const line = buffer.slice(0, newlineIndex).trim()
+        buffer = buffer.slice(newlineIndex + 1)
+        if (!line.startsWith('data:')) continue
+        const payload = line.slice(5).trim()
+        if (!payload || payload === '[DONE]') continue
+        try {
+          yield JSON.parse(payload) as StreamEvent
+        } catch {
+          // skip malformed keep-alive/partial lines
+        }
+      }
+    }
+  } finally {
+    reader.releaseLock()
+  }
+}
+
+async function describeHttpError(response: Response): Promise<string> {
+  const hints: Record<number, string> = {
+    401: 'invalid API key',
+    402: 'insufficient Concentrate credits',
+    424: 'this model is currently unavailable — pick another in Settings',
+    429: 'rate limited — try again shortly'
+  }
+  let detail = ''
+  try {
+    const parsed = (await response.json()) as { error?: { message?: string }; message?: string }
+    detail = parsed.error?.message ?? parsed.message ?? ''
+  } catch {
+    // non-JSON error body
+  }
+  const hint = hints[response.status]
+  return `Concentrate API ${response.status}${hint ? ` (${hint})` : ''}${detail ? `: ${detail}` : ''}`
 }
 
 function formatTime(seconds: number): string {

@@ -532,3 +532,7 @@ button {
 .status-row.missing {
   color: var(--danger);
 }
+
+.modal a {
+  color: var(--accent);
+}

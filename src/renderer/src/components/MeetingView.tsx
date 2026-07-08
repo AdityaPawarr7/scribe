@@ -109,7 +109,7 @@ export default function MeetingView(props: Props): React.JSX.Element {
           {tab === 'notes' ? (
             <textarea
               className="notes-editor"
-              placeholder="Type rough notes here during the meeting — fragments are fine. Claude will merge them with the transcript."
+              placeholder="Type rough notes here during the meeting — fragments are fine. AI will merge them with the transcript when you hit Enhance."
               value={notes}
               onChange={(event) => handleNotesChange(event.target.value)}
             />

@@ -5,10 +5,17 @@ interface Props {
   onClose: () => void
 }
 
-const MODELS = [
-  { id: 'claude-opus-4-8', label: 'Claude Opus 4.8 (recommended)' },
-  { id: 'claude-sonnet-5', label: 'Claude Sonnet 5 (faster/cheaper)' },
-  { id: 'claude-haiku-4-5', label: 'Claude Haiku 4.5 (fastest)' }
+/** Popular picks from the Concentrate model fortress (https://concentrate.ai/models) — any of its 153 model IDs can be typed in. */
+const SUGGESTED_MODELS = [
+  { id: 'claude-opus-4.8', label: 'Claude Opus 4.8 — recommended' },
+  { id: 'claude-fable-5', label: 'Claude Fable 5 — most capable' },
+  { id: 'claude-sonnet-5', label: 'Claude Sonnet 5 — fast + cheap' },
+  { id: 'claude-haiku-4.5', label: 'Claude Haiku 4.5 — fastest Claude' },
+  { id: 'gpt-5.5', label: 'GPT-5.5' },
+  { id: 'gpt-5.4', label: 'GPT-5.4' },
+  { id: 'gpt-5.4-mini', label: 'GPT-5.4 mini' },
+  { id: 'gemini-3.5-flash', label: 'Gemini 3.5 Flash' },
+  { id: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro' }
 ]
 
 export default function SettingsModal(props: Props): React.JSX.Element {
@@ -60,25 +67,35 @@ export default function SettingsModal(props: Props): React.JSX.Element {
           </button>
         </div>
 
-        <h3>Claude (note enhancement)</h3>
+        <h3>Concentrate AI (note enhancement)</h3>
         <label>
-          Anthropic API key
+          Concentrate API key
           <input
             type="password"
-            placeholder="sk-ant-… (leave empty to use ANTHROPIC_API_KEY or `ant auth login`)"
-            value={settings.anthropicApiKey}
-            onChange={(event) => save({ anthropicApiKey: event.target.value })}
+            placeholder="sk-cn-… (leave empty to use CONCENTRATE_API_KEY)"
+            value={settings.concentrateApiKey}
+            onChange={(event) => save({ concentrateApiKey: event.target.value })}
           />
         </label>
         <label>
-          Model
-          <select value={settings.model} onChange={(event) => save({ model: event.target.value })}>
-            {MODELS.map((model) => (
+          Model — pick a suggestion or type any ID from the{' '}
+          <a href="https://concentrate.ai/models" target="_blank" rel="noreferrer">
+            model fortress
+          </a>
+          <input
+            type="text"
+            list="fortress-models"
+            value={settings.model}
+            placeholder="claude-opus-4.8"
+            onChange={(event) => save({ model: event.target.value })}
+          />
+          <datalist id="fortress-models">
+            {SUGGESTED_MODELS.map((model) => (
               <option key={model.id} value={model.id}>
                 {model.label}
               </option>
             ))}
-          </select>
+          </datalist>
         </label>
 
         <h3>Transcription (local, whisper.cpp)</h3>
