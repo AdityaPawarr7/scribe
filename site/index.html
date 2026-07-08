@@ -57,10 +57,15 @@
 
   /* ---------- nav ---------- */
   nav {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 90;
+    position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 90;
+    width: min(1140px, calc(100vw - 32px));
     display: flex; align-items: center; justify-content: space-between;
-    padding: 18px 34px; mix-blend-mode: normal;
-    background: linear-gradient(rgba(15,14,12,.85), rgba(15,14,12,0));
+    padding: 10px 12px 10px 24px; border-radius: 999px;
+    background: rgba(22, 21, 18, 0.5);
+    backdrop-filter: blur(26px) saturate(1.7);
+    -webkit-backdrop-filter: blur(26px) saturate(1.7);
+    border: 1px solid rgba(246, 241, 231, 0.14);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,.18), inset 0 -1px 1px rgba(255,255,255,.04), 0 14px 44px rgba(0,0,0,.4);
   }
   .brand { display: flex; align-items: baseline; gap: 12px; }
   .brand img { width: 20px; height: 20px; transform: translateY(3px); }
@@ -74,20 +79,29 @@
   .nav-cta:hover { background: var(--mint); transform: translateY(-1px); }
 
   /* ---------- hero ---------- */
-  .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 150px 0 70px; position: relative; }
+  .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 130px 0 50px; position: relative; }
+  .hero-main { display: grid; grid-template-columns: 1.42fr 1fr; gap: 64px; align-items: center; }
   .overline { font-size: 13px; letter-spacing: .32em; text-transform: uppercase; color: var(--paper-dim); margin-bottom: 42px; }
   .overline b { color: var(--mint); font-weight: 500; }
   h1 {
     font-family: var(--serif); font-weight: 380; font-optical-sizing: auto;
-    font-size: clamp(54px, 9.4vw, 128px); line-height: 0.98; letter-spacing: -0.015em;
+    font-size: clamp(52px, 8.6vw, 118px); line-height: 0.98; letter-spacing: -0.015em;
     max-width: 12ch;
   }
+  .h1-word { display: inline-block; animation: word-drift 9s ease-in-out infinite; }
+  h1 em { display: inline-block; transform-origin: 18% 88%; animation: art-float 7.5s ease-in-out infinite; }
+  @keyframes art-float {
+    0%, 100% { transform: rotate(-1.3deg) translateY(3px); }
+    50% { transform: rotate(2deg) translateY(-9px); }
+  }
+  @keyframes word-drift { 50% { transform: translateY(-5px) rotate(.35deg); } }
   h1 em { font-style: italic; font-weight: 430; color: var(--mint); position: relative; white-space: nowrap; }
   h1 .flourish { position: absolute; left: -2%; bottom: -0.12em; width: 104%; height: .28em; overflow: visible; }
   h1 .flourish path { fill: none; stroke: var(--mint); stroke-width: 3.4; stroke-linecap: round; opacity: .85; }
-  .hero-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 60px; align-items: end; }
-  .hero-side { padding-bottom: 14px; }
-  .hero-side p { color: var(--paper-dim); font-size: 17.5px; line-height: 1.85; max-width: 34ch; margin-bottom: 40px; }
+  .hero-side p { color: var(--paper-dim); font-size: 17.5px; line-height: 1.85; max-width: 34ch; margin-bottom: 34px; }
+  .powered { margin-top: 28px; font-size: 14.5px; color: var(--paper-dim); }
+  .powered a { color: var(--mint); border-bottom: 1px solid rgba(94,224,196,.35); padding-bottom: 1px; }
+  .powered a:hover { border-color: var(--mint); }
   .hero-side p b { color: var(--paper); font-weight: 500; }
   .cta-row { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
   .btn-ink {
@@ -105,7 +119,7 @@
     font-family: var(--hand); font-size: 21px; color: var(--paper-dim); line-height: 1.35;
     position: absolute; max-width: 190px; transform: rotate(-4deg);
   }
-  .margin-note.mn-hero { right: 4%; top: 24%; transform: rotate(3.5deg); }
+  .margin-note.mn-hero { left: 1%; bottom: 9%; transform: rotate(-3.5deg); }
   .margin-note .u { color: var(--mint); }
   .margin-note svg { display: block; margin-top: 4px; }
 
@@ -145,8 +159,9 @@
     -webkit-text-stroke: 1px rgba(94,224,196,.5);
     position: absolute; top: 40px; opacity: .9; user-select: none;
   }
+  .folio { z-index: -1; }
   .chapter:nth-child(odd) .folio { right: -10px; }
-  .chapter:nth-child(even) .folio { left: -10px; }
+  .chapter:nth-child(even) .folio { right: 6%; left: auto; opacity: .55; }
   .ch-kicker { font-size: 12.5px; letter-spacing: .3em; text-transform: uppercase; color: var(--mint); margin-bottom: 22px; }
   .chapter h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(36px, 4.6vw, 58px); line-height: 1.06; letter-spacing: -0.01em; margin-bottom: 26px; max-width: 14ch; }
   .chapter h2 em { font-style: italic; color: var(--mint); }
@@ -228,7 +243,7 @@
   .patron a.btn-quiet { white-space: nowrap; font-size: 16px; }
 
   /* ---------- finale ---------- */
-  .finale { padding: 200px 0 120px; text-align: center; }
+  .finale { padding: 170px 0 150px; text-align: center; }
   .finale h2 { font-family: var(--serif); font-weight: 370; font-size: clamp(52px, 8.6vw, 116px); line-height: 1; letter-spacing: -0.015em; margin-bottom: 40px; }
   .finale h2 em { font-style: italic; color: var(--mint); }
   .finale .cta-row { justify-content: center; }
@@ -253,7 +268,7 @@
     .specimen-frame { transform: none; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .ticker-track, .wave i, .grain, .cursor { animation: none !important; }
+    .ticker-track, .wave i, .grain, .cursor, h1 em, .h1-word { animation: none !important; }
     .js .rv { transition: none; opacity: 1; transform: none; }
   }
 </style>
@@ -274,15 +289,15 @@
 
 <header class="hero wrap">
   <div class="overline rv">Free &amp; open source · runs on <b>your</b> Mac · est. MMXXVI</div>
-  <h1 class="rv d1">Scribing<br />is an <em>art.<svg class="flourish" viewBox="0 0 300 24" preserveAspectRatio="none"><path class="stroke-draw" d="M4 16 C 60 22, 120 6, 168 12 S 264 20, 296 8" /></svg></em></h1>
-  <div class="hero-grid">
-    <div></div>
+  <div class="hero-main">
+    <h1 class="rv d1"><span class="h1-word">Scribing</span><br />is an <em>art.<svg class="flourish" viewBox="0 0 300 24" preserveAspectRatio="none"><path class="stroke-draw" d="M4 16 C 60 22, 120 6, 168 12 S 264 20, 296 8" /></svg></em></h1>
     <div class="hero-side rv d2">
       <p>For five thousand years, scribes kept the record — faithfully, privately, by hand. Scribe continues the craft on your Mac: it <b>listens locally</b>, turns your rough fragments into <b>beautiful notes</b>, and never lets your words leave your machine.</p>
       <div class="cta-row">
         <a class="btn-ink" href="https://github.com/AdityaPawarr7/scribe/releases/latest" target="_blank" rel="noreferrer">Download for macOS</a>
         <a class="btn-quiet" href="https://github.com/AdityaPawarr7/scribe" target="_blank" rel="noreferrer">Read the source ↗</a>
       </div>
+      <div class="powered">⚡ Powered by <a href="https://concentrate.ai" target="_blank" rel="noreferrer">Concentrate AI</a> — Claude, GPT, Gemini &amp; 150 more, one key.</div>
       <div class="hero-foot">Apple Silicon · MIT · no accounts, no servers, no telemetry</div>
     </div>
   </div>
@@ -382,6 +397,15 @@
   </div>
 </section>
 
+<section class="finale wrap">
+  <h2 class="rv">Own your <em>notes.</em></h2>
+  <div class="cta-row rv d1">
+    <a class="btn-ink" href="https://github.com/AdityaPawarr7/scribe/releases/latest" target="_blank" rel="noreferrer">Download for macOS</a>
+    <a class="btn-quiet" href="https://github.com/AdityaPawarr7/scribe" target="_blank" rel="noreferrer">Star on GitHub ↗</a>
+  </div>
+  <div class="hero-foot rv d2">free · two-minute setup · right-click → Open the first time (community build)</div>
+</section>
+
 <section id="future" class="future wrap">
   <div class="ch-kicker rv">Where the craft goes next</div>
   <h2 class="rv d1">One scribe for<br />your <em>whole life.</em></h2>
@@ -411,14 +435,13 @@
   </div>
 </section>
 
-<section class="finale wrap">
-  <h2 class="rv">Own your <em>notes.</em></h2>
-  <div class="cta-row rv d1">
-    <a class="btn-ink" href="https://github.com/AdityaPawarr7/scribe/releases/latest" target="_blank" rel="noreferrer">Download for macOS</a>
-    <a class="btn-quiet" href="https://github.com/AdityaPawarr7/scribe" target="_blank" rel="noreferrer">Star on GitHub ↗</a>
+
+
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-track">
+    <span class="solid">own your notes</span><span>✳</span><span class="solid">own your notes</span><span>✳</span><span class="solid">own your notes</span><span>✳</span><span class="solid">own your notes</span><span>✳</span><span class="solid">own your notes</span><span>✳</span><span class="solid">own your notes</span><span>✳</span><span class="solid">own your notes</span><span>✳</span><span class="solid">own your notes</span><span>✳</span>
   </div>
-  <div class="hero-foot rv d2">free · two-minute setup · right-click → Open the first time (community build)</div>
-</section>
+</div>
 
 <footer class="wrap">
   <div class="foot-inner">
