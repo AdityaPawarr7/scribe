@@ -1,6 +1,26 @@
 import { useEffect, useRef, useState } from 'react'
 import { marked } from 'marked'
 import type { Meeting } from '../env'
+import ModelSelect from './ModelSelect'
+
+/** Quick model switcher for the header — persists straight to settings. */
+function HeaderModelPicker(): React.JSX.Element {
+  const [model, setModel] = useState('')
+  useEffect(() => {
+    void window.muesli.settings.get().then((settings) => setModel(settings.model))
+  }, [])
+  if (!model) return <></>
+  return (
+    <ModelSelect
+      compact
+      value={model}
+      onChange={(next) => {
+        setModel(next)
+        void window.muesli.settings.set({ model: next })
+      }}
+    />
+  )
+}
 
 interface Props {
   meeting: Meeting
@@ -74,6 +94,7 @@ export default function MeetingView(props: Props): React.JSX.Element {
               ● Record
             </button>
           )}
+          <HeaderModelPicker />
           {props.enhancing ? (
             <button className="secondary" onClick={props.onCancelEnhance}>
               Cancel

@@ -5,6 +5,7 @@ import * as store from './store'
 import { RecordingSession } from './transcriber'
 import { enhanceMeeting } from './enhancer'
 import { downloadModel } from './modelDownload'
+import { listModels, testConnection } from './concentrate'
 import type { Meeting, Settings } from '@shared/types'
 
 let mainWindow: BrowserWindow | null = null
@@ -118,6 +119,10 @@ ipcMain.handle('enhance:cancel', (_e, meetingId: string) => {
   activeEnhancements.get(meetingId)?.cancel()
   activeEnhancements.delete(meetingId)
 })
+
+// ---- concentrate ----
+ipcMain.handle('concentrate:models', () => listModels())
+ipcMain.handle('concentrate:test', (_e, model: string) => testConnection(model))
 
 // ---- settings / whisper ----
 ipcMain.handle('settings:get', () => loadSettings())

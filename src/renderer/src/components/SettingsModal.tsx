@@ -1,22 +1,10 @@
 import { useEffect, useState } from 'react'
 import type { ModelDownloadProgress, Settings, WhisperStatus } from '../env'
+import ModelSelect from './ModelSelect'
 
 interface Props {
   onClose: () => void
 }
-
-/** Popular picks from the Concentrate model fortress (https://concentrate.ai/models) — any of its 153 model IDs can be typed in. */
-const SUGGESTED_MODELS = [
-  { id: 'claude-opus-4.8', label: 'Claude Opus 4.8 — recommended' },
-  { id: 'claude-fable-5', label: 'Claude Fable 5 — most capable' },
-  { id: 'claude-sonnet-5', label: 'Claude Sonnet 5 — fast + cheap' },
-  { id: 'claude-haiku-4.5', label: 'Claude Haiku 4.5 — fastest Claude' },
-  { id: 'gpt-5.5', label: 'GPT-5.5' },
-  { id: 'gpt-5.4', label: 'GPT-5.4' },
-  { id: 'gpt-5.4-mini', label: 'GPT-5.4 mini' },
-  { id: 'gemini-3.5-flash', label: 'Gemini 3.5 Flash' },
-  { id: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro' }
-]
 
 export default function SettingsModal(props: Props): React.JSX.Element {
   const [settings, setSettings] = useState<Settings | null>(null)
@@ -78,24 +66,12 @@ export default function SettingsModal(props: Props): React.JSX.Element {
           />
         </label>
         <label>
-          Model — pick a suggestion or type any ID from the{' '}
+          Model — anything in the{' '}
           <a href="https://concentrate.ai/models" target="_blank" rel="noreferrer">
             model fortress
-          </a>
-          <input
-            type="text"
-            list="fortress-models"
-            value={settings.model}
-            placeholder="claude-opus-4.8"
-            onChange={(event) => save({ model: event.target.value })}
-          />
-          <datalist id="fortress-models">
-            {SUGGESTED_MODELS.map((model) => (
-              <option key={model.id} value={model.id}>
-                {model.label}
-              </option>
-            ))}
-          </datalist>
+          </a>{' '}
+          works, including the free <code>gpt-oss-120b</code>
+          <ModelSelect value={settings.model} onChange={(model) => save({ model })} />
         </label>
 
         <h3>Transcription (local, whisper.cpp)</h3>

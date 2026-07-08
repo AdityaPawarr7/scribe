@@ -4,6 +4,8 @@ import { MicRecorder } from './recorder'
 import Sidebar from './components/Sidebar'
 import MeetingView from './components/MeetingView'
 import SettingsModal from './components/SettingsModal'
+import Onboarding from './components/Onboarding'
+import Logo from './components/Logo'
 
 export default function App(): React.JSX.Element {
   const [meetings, setMeetings] = useState<MeetingSummary[]>([])
@@ -13,6 +15,7 @@ export default function App(): React.JSX.Element {
   const [enhancing, setEnhancing] = useState(false)
   const [enhanceBuffer, setEnhanceBuffer] = useState('')
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [showOnboarding, setShowOnboarding] = useState(false)
   const [banner, setBanner] = useState<string | null>(null)
 
   const recorderRef = useRef<MicRecorder | null>(null)
@@ -25,6 +28,9 @@ export default function App(): React.JSX.Element {
 
   useEffect(() => {
     void refreshList()
+    void window.muesli.settings.get().then((settings) => {
+      if (!settings.onboardingComplete) setShowOnboarding(true)
+    })
   }, [refreshList])
 
   // event subscriptions
@@ -202,7 +208,9 @@ export default function App(): React.JSX.Element {
           />
         ) : (
           <div className="empty-state">
-            <div className="empty-logo">🥣</div>
+            <div className="empty-logo">
+              <Logo size={72} />
+            </div>
             <h1>Muesli</h1>
             <p>Open-source meeting notes. Record, transcribe locally, enhance with the model of your choice.</p>
             <button className="primary" onClick={() => void createMeeting()}>
@@ -212,6 +220,7 @@ export default function App(): React.JSX.Element {
         )}
       </main>
       {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
+      {showOnboarding && <Onboarding onDone={() => setShowOnboarding(false)} />}
     </div>
   )
 }

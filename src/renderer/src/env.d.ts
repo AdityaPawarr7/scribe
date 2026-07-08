@@ -1,8 +1,11 @@
 /// <reference types="vite/client" />
 import type {
+  ConcentrateModel,
+  ConnectionTestResult,
   Meeting,
   MeetingSummary,
   ModelDownloadProgress,
+  ModelListResult,
   Settings,
   TranscriptSegment,
   WhisperStatus
@@ -42,6 +45,10 @@ export interface MuesliApi {
     status: () => Promise<WhisperStatus>
     downloadModel: () => Promise<WhisperStatus>
   }
+  concentrate: {
+    models: () => Promise<ModelListResult>
+    test: (model: string) => Promise<ConnectionTestResult>
+  }
   on: (channel: EventChannel, listener: (...args: never[]) => void) => () => void
 }
 
@@ -51,4 +58,14 @@ declare global {
   }
 }
 
-export type { Meeting, MeetingSummary, ModelDownloadProgress, Settings, TranscriptSegment, WhisperStatus }
+export type {
+  ConcentrateModel,
+  ConnectionTestResult,
+  Meeting,
+  MeetingSummary,
+  ModelDownloadProgress,
+  ModelListResult,
+  Settings,
+  TranscriptSegment,
+  WhisperStatus
+}

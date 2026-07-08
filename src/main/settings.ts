@@ -9,7 +9,8 @@ const DEFAULTS: Settings = {
   model: 'claude-opus-4.8',
   whisperBinaryPath: '',
   whisperModelPath: '',
-  language: 'en'
+  language: 'en',
+  onboardingComplete: false
 }
 
 const WHISPER_CANDIDATES = [

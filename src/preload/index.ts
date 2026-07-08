@@ -1,5 +1,14 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { Meeting, MeetingSummary, ModelDownloadProgress, Settings, TranscriptSegment, WhisperStatus } from '../shared/types'
+import type {
+  ConnectionTestResult,
+  Meeting,
+  MeetingSummary,
+  ModelDownloadProgress,
+  ModelListResult,
+  Settings,
+  TranscriptSegment,
+  WhisperStatus
+} from '../shared/types'
 
 const EVENT_CHANNELS = [
   'transcript:segment',
@@ -35,6 +44,10 @@ const api = {
   settings: {
     get: (): Promise<Settings> => ipcRenderer.invoke('settings:get'),
     set: (patch: Partial<Settings>): Promise<Settings> => ipcRenderer.invoke('settings:set', patch)
+  },
+  concentrate: {
+    models: (): Promise<ModelListResult> => ipcRenderer.invoke('concentrate:models'),
+    test: (model: string): Promise<ConnectionTestResult> => ipcRenderer.invoke('concentrate:test', model)
   },
   whisper: {
     status: (): Promise<WhisperStatus> => ipcRenderer.invoke('whisper:status'),

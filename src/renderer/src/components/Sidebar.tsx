@@ -1,4 +1,5 @@
 import type { MeetingSummary } from '../env'
+import Logo from './Logo'
 
 interface Props {
   meetings: MeetingSummary[]
@@ -27,7 +28,9 @@ export default function Sidebar(props: Props): React.JSX.Element {
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
-        <span className="wordmark">🥣 Muesli</span>
+        <span className="wordmark">
+          <Logo size={20} className="wordmark-logo" /> Muesli
+        </span>
       </div>
       <button className="primary new-meeting" onClick={props.onCreate}>
         + New meeting

@@ -1,10 +1,17 @@
-# 🥣 Muesli
+<p align="center">
+  <img src="assets/logo.svg" width="96" alt="Muesli — grains together" />
+</p>
 
-**Open-source AI meeting notes.** Record a meeting, take rough notes while you talk, and let AI merge them with the transcript into polished notes — the [Granola](https://granola.ai) workflow, but open source and local-first.
+<h1 align="center">Muesli</h1>
+
+<p align="center"><strong>Open-source AI meeting notes.</strong> Local transcription. Bring your own key. Any model.</p>
+
+Record a meeting, take rough notes while you talk, and let AI merge them with the transcript into polished notes — the [Granola](https://granola.ai) workflow, but open source and local-first. Like the grains in the logo: your notes and the transcript are stronger together.
 
 - **Local transcription** — audio is transcribed on your machine with [whisper.cpp](https://github.com/ggerganov/whisper.cpp). Your recordings never leave your laptop.
 - **Your notes stay yours** — everything is stored as plain JSON + WAV on disk. No accounts, no backend, no sync servers.
-- **AI enhancement, any model** — one click merges your rough notes with the transcript into structured notes (summary, decisions, action items), powered by [Concentrate AI](https://concentrate.ai): one API key, 150+ models. Pick Claude, GPT, Gemini, or anything else in the [model fortress](https://concentrate.ai/models) and switch per your taste. This is the only step that calls an external API, and it sends text only.
+- **Bring your own key 🔑** — no subscription, no middleman markup. Plug in one [Concentrate AI](https://concentrate.ai) key and get 150+ models through a single door — Claude, GPT, Gemini, and everything else in the [model fortress](https://concentrate.ai/models). Switch models from a dropdown right in the app. **No budget? Concentrate serves `gpt-oss-120b` for free**, so you can run Muesli end-to-end at $0.
+- **Text-only egress** — enhancement is the only step that calls an external API, and it sends text, never audio.
 
 ## How it works
 
@@ -29,11 +36,7 @@ npm install
 npm run dev
 ```
 
-First run:
-
-1. Open **Settings** (bottom of the sidebar).
-2. Download the Whisper model (one click, ~150MB, one-time).
-3. Add your [Concentrate AI](https://concentrate.ai) API key (`sk-cn-…`) — or leave it empty if you have `CONCENTRATE_API_KEY` exported. Optionally pick a different model from the [fortress](https://concentrate.ai/models); the default is `claude-opus-4.8`.
+On first launch Muesli walks you through everything: downloading the speech model (one click, ~150MB, one-time), pasting your [Concentrate AI](https://concentrate.ai) key (`sk-cn-…`, or export `CONCENTRATE_API_KEY`), picking a model, and testing the connection — including a one-click "use the free model" path via `gpt-oss-120b`. The default model is `claude-opus-4.8`; switch anytime from the dropdown in the meeting header or Settings.
 
 Then create a meeting and hit Record.
 
@@ -45,6 +48,7 @@ Then create a meeting and hit Record.
 |---|---|---|
 | `src/main/transcriber.ts` | Electron main | Accumulates PCM, writes WAV, shells out to `whisper-cli` in rolling 15s chunks |
 | `src/main/enhancer.ts` | Electron main | Streams the notes+transcript merge from Concentrate AI (`POST /v1/responses`, SSE — plain `fetch`, no SDK) |
+| `src/main/concentrate.ts` | Electron main | Model fortress catalog (`GET /v1/models`) + connection test used by onboarding and the model dropdown |
 | `src/main/store.ts` | Electron main | Meetings as plain JSON + WAV under the app's `userData` dir |
 | `src/renderer/src/recorder.ts` | Renderer | Mic capture via `getUserMedia` + AudioWorklet at 16kHz |
 | `src/renderer` | Renderer | React UI: meeting list, notes editor, live transcript, settings |

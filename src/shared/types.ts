@@ -31,6 +31,24 @@ export interface Settings {
   whisperBinaryPath: string
   whisperModelPath: string
   language: string
+  onboardingComplete: boolean
+}
+
+export interface ConcentrateModel {
+  id: string
+  displayName: string
+  provider: string
+}
+
+export interface ModelListResult {
+  ok: boolean
+  models: ConcentrateModel[]
+  error?: string
+}
+
+export interface ConnectionTestResult {
+  ok: boolean
+  message: string
 }
 
 export interface WhisperStatus {

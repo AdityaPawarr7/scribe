@@ -536,3 +536,253 @@ button {
 .modal a {
   color: var(--accent);
 }
+
+/* ---- logo ---- */
+.wordmark {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--accent);
+}
+
+.wordmark-logo {
+  flex-shrink: 0;
+}
+
+.empty-logo {
+  color: var(--accent);
+}
+
+/* ---- model select ---- */
+.model-select {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 13px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.model-select.compact {
+  width: auto;
+  max-width: 190px;
+  margin-top: 0;
+  padding: 8px;
+  background: var(--bg-hover);
+  color: var(--text-dim);
+}
+
+.model-select.compact:hover {
+  color: var(--text);
+}
+
+.model-select-custom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.model-select-custom input {
+  flex: 1;
+}
+
+.link-button {
+  color: var(--accent);
+  text-decoration: underline;
+  font-size: 13px;
+  white-space: nowrap;
+  padding: 0;
+}
+
+/* ---- onboarding ---- */
+.onboarding {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% -10%, rgba(232, 161, 60, 0.16), transparent),
+    var(--bg);
+  -webkit-app-region: drag;
+  animation: fade-in 0.4s ease;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.onboarding-card {
+  position: relative;
+  width: 560px;
+  max-width: calc(100vw - 48px);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px 36px 56px;
+  -webkit-app-region: no-drag;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+}
+
+.onboarding-step {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: step-in 0.35s ease;
+}
+
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.onboarding-step h1 {
+  font-size: 26px;
+}
+
+.onboarding-tagline {
+  color: var(--text-dim);
+  line-height: 1.55;
+}
+
+.onboarding-tagline a {
+  color: var(--accent);
+}
+
+.grain-hero {
+  align-self: center;
+  color: var(--accent);
+  animation: grain-spin 32s linear infinite;
+  filter: drop-shadow(0 0 24px rgba(232, 161, 60, 0.35));
+}
+
+@keyframes grain-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.onboarding-features {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+.feature {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-dim);
+}
+
+.feature strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.feature-emoji {
+  font-size: 20px;
+}
+
+.onboarding-card label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.onboarding-card label input {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 9px 10px;
+  font: inherit;
+  font-size: 13px;
+}
+
+.free-callout {
+  background: rgba(127, 191, 127, 0.08);
+  border: 1px solid rgba(127, 191, 127, 0.25);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.free-callout code {
+  background: var(--bg-hover);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.test-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.onboarding-next {
+  align-self: flex-end;
+  margin-top: 6px;
+}
+
+.onboarding-dots {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--border);
+  padding: 0;
+  transition: all 0.25s ease;
+}
+
+.dot.active {
+  background: var(--accent);
+  transform: scale(1.35);
+}
+
+.dot.done {
+  background: var(--accent);
+  opacity: 0.5;
+}
+
+.onboarding-skip {
+  position: absolute;
+  bottom: 16px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: fit-content;
+  color: var(--text-dim);
+  font-size: 12.5px;
+}
+
+.onboarding-skip:hover {
+  color: var(--text);
+}
