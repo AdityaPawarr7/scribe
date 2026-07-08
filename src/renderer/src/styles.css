@@ -30,6 +30,7 @@ body,
 
 body {
   font-family: 'American Typewriter', 'Courier Prime', 'Courier New', ui-monospace, monospace;
+  font-weight: 300; /* AT Light — the regular cut is too heavy for UI */
   background: var(--scrim); /* vibrancy shows through beneath this tint */
   color: var(--text);
   font-size: 14px;
@@ -1151,4 +1152,86 @@ h3,
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.12em;
+}
+
+/* =============================================================
+   Type consistency pass: inputs/selects inherit the app face,
+   lighter weights everywhere, markdown output matches the app
+   ============================================================= */
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+h1,
+h2,
+h3,
+strong,
+b,
+.wordmark,
+.primary,
+.record,
+.meeting-item-title,
+.feature strong,
+.setting-info strong,
+.tab.active,
+.transcript-title {
+  font-weight: 500;
+}
+
+.title-input {
+  font-family: inherit;
+  font-weight: 500;
+}
+
+/* enhanced notes: same scale and voice as the rest of the app */
+.enhanced-notes h1 {
+  font-size: 19px;
+}
+
+.enhanced-notes h2 {
+  font-size: 16px;
+}
+
+.enhanced-notes h3 {
+  font-size: 14.5px;
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+.enhanced-notes strong,
+.enhanced-notes b {
+  font-weight: 500;
+  color: var(--text);
+}
+
+.enhanced-notes a {
+  color: var(--accent);
+}
+
+.enhanced-notes blockquote {
+  border-left: 2px solid var(--stroke-strong);
+  padding-left: 12px;
+  margin: 10px 0;
+  color: var(--text-dim);
+}
+
+.enhanced-notes hr {
+  border: none;
+  border-top: 1px solid var(--stroke);
+  margin: 14px 0;
+}
+
+.enhanced-notes table {
+  border-collapse: collapse;
+  margin: 10px 0;
+  font-size: 13px;
+}
+
+.enhanced-notes th,
+.enhanced-notes td {
+  border: 1px solid var(--stroke);
+  padding: 5px 10px;
+  text-align: left;
 }

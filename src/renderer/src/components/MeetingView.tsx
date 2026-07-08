@@ -6,19 +6,23 @@ import ModelSelect from './ModelSelect'
 /** Quick model switcher for the header — persists straight to settings. */
 function HeaderModelPicker(): React.JSX.Element {
   const [model, setModel] = useState('')
-  useEffect(() => {
+  const refresh = (): void => {
     void window.scribe.settings.get().then((settings) => setModel(settings.model))
-  }, [])
+  }
+  useEffect(refresh, [])
   if (!model) return <></>
   return (
-    <ModelSelect
-      compact
-      value={model}
-      onChange={(next) => {
-        setModel(next)
-        void window.scribe.settings.set({ model: next })
-      }}
-    />
+    // refresh on hover so the picker never drifts from Settings
+    <span onMouseEnter={refresh}>
+      <ModelSelect
+        compact
+        value={model}
+        onChange={(next) => {
+          setModel(next)
+          void window.scribe.settings.set({ model: next })
+        }}
+      />
+    </span>
   )
 }
 
