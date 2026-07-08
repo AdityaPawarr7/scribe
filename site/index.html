@@ -3,327 +3,461 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Scribe — AI meeting notes that answer to you, not a server</title>
-<meta name="description" content="Free, open-source AI meeting notes for Mac. Local transcription with whisper.cpp, auto-generated notes, chat over your meeting library. Your machine, your keys, your files." />
-<meta property="og:title" content="Scribe — your meetings, your machine, your notes" />
-<meta property="og:description" content="Free, open-source AI meeting notes that run locally on your Mac. Audio never leaves your machine." />
+<title>Scribe — the art of the meeting note</title>
+<meta name="description" content="Free, open-source AI meeting notes for Mac. Recorded and transcribed on your machine — never uploaded. Rough fragments become beautiful notes." />
+<meta property="og:title" content="Scribe — every meeting, beautifully remembered" />
+<meta property="og:description" content="Free, open-source meeting notes that run locally on your Mac. Audio never leaves your machine." />
 <meta property="og:image" content="assets/hero.png" />
 <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Space+Grotesk:wght@400;500;600&family=Caveat:wght@500;600&display=swap" rel="stylesheet" />
 <style>
   * { box-sizing: border-box; margin: 0; }
   :root {
-    --bg: #0d0e0d;
-    --text: rgba(255, 255, 255, 0.94);
-    --dim: rgba(255, 255, 255, 0.56);
-    --faint: rgba(255, 255, 255, 0.34);
-    --accent: #5ee0c4;
-    --glass-1: rgba(255, 255, 255, 0.045);
-    --glass-2: rgba(255, 255, 255, 0.09);
-    --stroke: rgba(255, 255, 255, 0.1);
-    --stroke-strong: rgba(255, 255, 255, 0.2);
-    --specular: inset 0 1px 1px rgba(255,255,255,.25), inset 0 -1px 1px rgba(255,255,255,.05),
-                inset 1px 0 1px rgba(255,255,255,.08), inset -1px 0 1px rgba(255,255,255,.08);
+    --ink: #0f0e0c;
+    --paper: rgba(246, 241, 231, 0.96);
+    --paper-dim: rgba(246, 241, 231, 0.55);
+    --paper-faint: rgba(246, 241, 231, 0.28);
+    --mint: #5ee0c4;
+    --mint-deep: #2fbb96;
+    --line: rgba(246, 241, 231, 0.14);
+    --serif: 'Fraunces', 'Iowan Old Style', Georgia, serif;
+    --sans: 'Space Grotesk', -apple-system, sans-serif;
+    --hand: 'Caveat', cursive;
+    --mono: ui-monospace, 'SF Mono', Menlo, monospace;
   }
   html { scroll-behavior: smooth; }
   body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
-    line-height: 1.55;
+    background: var(--ink); color: var(--paper);
+    font-family: var(--sans); font-size: 17px; line-height: 1.75;
     overflow-x: hidden;
   }
+  ::selection { background: var(--mint); color: var(--ink); }
   a { color: inherit; text-decoration: none; }
+  img { max-width: 100%; }
 
-  /* ---- aurora ---- */
-  .aurora { position: fixed; inset: 0; z-index: -2; overflow: hidden; }
-  .blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: .5; }
-  .blob.b1 { width: 60vw; height: 60vw; background: radial-gradient(circle, #134f43, transparent 65%); top: -25vw; left: -12vw; animation: drift1 26s ease-in-out infinite alternate; }
-  .blob.b2 { width: 46vw; height: 46vw; background: radial-gradient(circle, #143145, transparent 65%); top: 12vh; right: -16vw; animation: drift2 32s ease-in-out infinite alternate; }
-  .blob.b3 { width: 52vw; height: 52vw; background: radial-gradient(circle, #2a1e3f, transparent 65%); bottom: -22vw; left: 24vw; animation: drift3 38s ease-in-out infinite alternate; }
-  @keyframes drift1 { to { transform: translate(9vw, 7vh) scale(1.12); } }
-  @keyframes drift2 { to { transform: translate(-7vw, 12vh) scale(0.92); } }
-  @keyframes drift3 { to { transform: translate(-10vw, -8vh) scale(1.08); } }
-  .grain-overlay { position: fixed; inset: 0; z-index: -1; opacity: .35;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  /* candlelight + paper grain */
+  .glow { position: fixed; inset: 0; z-index: -2; pointer-events: none;
+    background:
+      radial-gradient(ellipse 55% 38% at 68% 6%, rgba(94, 224, 196, 0.075), transparent),
+      radial-gradient(ellipse 70% 50% at 12% 88%, rgba(200, 150, 80, 0.05), transparent);
   }
+  .grain { position: fixed; inset: -50%; z-index: -1; pointer-events: none; opacity: .5;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");
+    animation: grain-shift 1.2s steps(3) infinite;
+  }
+  @keyframes grain-shift { 0%{transform:translate(0,0)} 33%{transform:translate(-2%,1%)} 66%{transform:translate(1%,-2%)} 100%{transform:translate(0,0)} }
 
-  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+  /* the ink thread that draws down the page */
+  .thread { position: absolute; left: 50%; top: 0; width: 1px; height: 100%; z-index: -1; }
+  .thread i { display: block; width: 1px; height: 0; background: linear-gradient(var(--mint), rgba(94,224,196,.25)); }
 
-  /* ---- nav ---- */
+  .wrap { max-width: 1140px; margin: 0 auto; padding: 0 28px; position: relative; }
+
+  /* ---------- nav ---------- */
   nav {
-    position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
-    z-index: 50; width: min(1120px, calc(100vw - 32px));
+    position: fixed; top: 0; left: 0; right: 0; z-index: 90;
     display: flex; align-items: center; justify-content: space-between;
-    padding: 10px 18px; border-radius: 999px;
-    background: rgba(18, 19, 18, 0.55);
-    backdrop-filter: blur(24px) saturate(1.7);
-    -webkit-backdrop-filter: blur(24px) saturate(1.7);
-    border: 1px solid var(--stroke);
-    box-shadow: var(--specular), 0 12px 40px rgba(0,0,0,.35);
+    padding: 18px 34px; mix-blend-mode: normal;
+    background: linear-gradient(rgba(15,14,12,.85), rgba(15,14,12,0));
   }
-  .brand { display: flex; align-items: center; gap: 10px; font-weight: 650; letter-spacing: .01em; }
-  .brand img { width: 22px; height: 22px; }
-  .nav-links { display: flex; align-items: center; gap: 18px; font-size: 14px; color: var(--dim); }
-  .nav-links a:hover { color: var(--text); }
+  .brand { display: flex; align-items: baseline; gap: 12px; }
+  .brand img { width: 20px; height: 20px; transform: translateY(3px); }
+  .brand span { font-family: var(--serif); font-weight: 600; font-size: 21px; letter-spacing: .01em; }
+  .nav-right { display: flex; align-items: center; gap: 26px; font-size: 13.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--paper-dim); }
+  .nav-right a:hover { color: var(--paper); }
+  .nav-cta {
+    color: var(--ink) !important; background: var(--paper); padding: 9px 20px; border-radius: 999px;
+    font-weight: 600; transition: background .2s ease, transform .2s ease;
+  }
+  .nav-cta:hover { background: var(--mint); transform: translateY(-1px); }
 
-  /* ---- buttons ---- */
-  .btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 11px 22px; border-radius: 999px; font-weight: 600; font-size: 15px;
-    border: 1px solid var(--stroke); transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
-  }
-  .btn-primary {
-    background: linear-gradient(180deg, #8bedd3, #3ecfa9);
-    color: #05221a; border-color: rgba(255,255,255,.35);
-    box-shadow: inset 0 1px 1px rgba(255,255,255,.5), inset 0 -2px 6px rgba(0,0,0,.12), 0 6px 24px rgba(94,224,196,.28);
-  }
-  .btn-primary:hover { transform: translateY(-2px); box-shadow: inset 0 1px 1px rgba(255,255,255,.5), inset 0 -2px 6px rgba(0,0,0,.12), 0 10px 32px rgba(94,224,196,.42); }
-  .btn-ghost {
-    background: var(--glass-2); color: var(--text);
-    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-    box-shadow: var(--specular);
-  }
-  .btn-ghost:hover { background: rgba(255,255,255,.14); transform: translateY(-2px); }
-  .btn-sm { padding: 8px 16px; font-size: 13.5px; }
-
-  /* ---- hero ---- */
-  header { padding: 150px 0 40px; text-align: center; position: relative; }
-  .pill-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 26px; }
-  .pill {
-    font-size: 12.5px; color: var(--dim); padding: 6px 14px; border-radius: 999px;
-    background: var(--glass-1); border: 1px solid var(--stroke); box-shadow: var(--specular);
-  }
-  .pill b { color: var(--accent); font-weight: 600; }
+  /* ---------- hero ---------- */
+  .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 150px 0 70px; position: relative; }
+  .overline { font-size: 13px; letter-spacing: .32em; text-transform: uppercase; color: var(--paper-dim); margin-bottom: 42px; }
+  .overline b { color: var(--mint); font-weight: 500; }
   h1 {
-    font-size: clamp(40px, 6.4vw, 72px); line-height: 1.04; letter-spacing: -0.025em; font-weight: 750;
-    margin: 0 auto 20px; max-width: 830px;
+    font-family: var(--serif); font-weight: 380; font-optical-sizing: auto;
+    font-size: clamp(54px, 9.4vw, 128px); line-height: 0.98; letter-spacing: -0.015em;
+    max-width: 12ch;
   }
-  h1 .shimmer {
-    background: linear-gradient(100deg, #8bedd3 20%, #d8fff4 50%, #5ee0c4 80%);
-    -webkit-background-clip: text; background-clip: text; color: transparent;
+  h1 em { font-style: italic; font-weight: 430; color: var(--mint); position: relative; white-space: nowrap; }
+  h1 .flourish { position: absolute; left: -2%; bottom: -0.12em; width: 104%; height: .28em; overflow: visible; }
+  h1 .flourish path { fill: none; stroke: var(--mint); stroke-width: 3.4; stroke-linecap: round; opacity: .85; }
+  .hero-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 60px; align-items: end; }
+  .hero-side { padding-bottom: 14px; }
+  .hero-side p { color: var(--paper-dim); font-size: 17.5px; line-height: 1.85; max-width: 34ch; margin-bottom: 40px; }
+  .hero-side p b { color: var(--paper); font-weight: 500; }
+  .cta-row { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+  .btn-ink {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--mint); color: var(--ink); font-weight: 600; font-size: 16px;
+    padding: 16px 30px; border-radius: 999px;
+    box-shadow: 0 0 0 0 rgba(94,224,196,.4); transition: transform .2s ease, box-shadow .25s ease;
   }
-  .sub { font-size: clamp(16px, 2vw, 19px); color: var(--dim); max-width: 620px; margin: 0 auto 34px; }
-  .cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-  .cta-note { margin-top: 14px; font-size: 12.5px; color: var(--faint); }
+  .btn-ink:hover { transform: translateY(-2px); box-shadow: 0 14px 44px rgba(94,224,196,.3); }
+  .btn-quiet { color: var(--paper-dim); font-size: 15px; border-bottom: 1px solid var(--line); padding-bottom: 3px; transition: color .2s, border-color .2s; }
+  .btn-quiet:hover { color: var(--paper); border-color: var(--paper); }
+  .hero-foot { margin-top: 26px; font-size: 12.5px; letter-spacing: .05em; color: var(--paper-faint); }
 
-  /* ---- shot ---- */
-  .shot-frame {
-    margin: 64px auto 0; max-width: 1020px; border-radius: 20px; padding: 10px;
-    background: linear-gradient(160deg, rgba(255,255,255,.12), rgba(255,255,255,.03) 45%, rgba(255,255,255,.07));
-    border: 1px solid var(--stroke-strong);
-    box-shadow: var(--specular), 0 40px 120px rgba(0,0,0,.55), 0 0 90px rgba(94,224,196,.07);
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-    transform: perspective(1400px) rotateX(4deg);
+  .margin-note {
+    font-family: var(--hand); font-size: 21px; color: var(--paper-dim); line-height: 1.35;
+    position: absolute; max-width: 190px; transform: rotate(-4deg);
   }
-  .shot-frame img { width: 100%; display: block; border-radius: 12px; }
+  .margin-note.mn-hero { right: 4%; top: 24%; transform: rotate(3.5deg); }
+  .margin-note .u { color: var(--mint); }
+  .margin-note svg { display: block; margin-top: 4px; }
 
-  /* ---- sections ---- */
-  section { padding: 96px 0; }
-  .kicker { font-size: 13px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); font-weight: 650; margin-bottom: 14px; }
-  h2 { font-size: clamp(28px, 4vw, 44px); letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 14px; font-weight: 720; }
-  .lead { color: var(--dim); font-size: 17px; max-width: 640px; }
-
-  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 44px; }
-  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } .nav-links .hide-sm { display: none; } }
-  .card {
-    padding: 24px; border-radius: 18px;
-    background: linear-gradient(160deg, rgba(255,255,255,.07), rgba(255,255,255,.02) 50%, rgba(255,255,255,.045));
-    border: 1px solid var(--stroke);
-    box-shadow: var(--specular);
-    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-    transition: transform .2s ease, border-color .2s ease;
+  /* ---------- specimen (screenshot) ---------- */
+  .specimen { padding: 40px 0 0; position: relative; }
+  .specimen-frame {
+    position: relative; border-radius: 14px; padding: 9px;
+    background: linear-gradient(165deg, rgba(246,241,231,.14), rgba(246,241,231,.03) 45%, rgba(246,241,231,.08));
+    border: 1px solid rgba(246,241,231,.18);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,.22), 0 60px 140px rgba(0,0,0,.6), 0 0 110px rgba(94,224,196,.06);
+    transform: rotate(-1deg);
   }
-  .card:hover { transform: translateY(-4px); border-color: rgba(94,224,196,.35); }
-  .card .ico { font-size: 22px; margin-bottom: 12px; display: block; }
-  .card h3 { font-size: 16.5px; margin-bottom: 6px; font-weight: 650; }
-  .card p { font-size: 14px; color: var(--dim); }
-  .card p b { color: var(--text); font-weight: 600; }
-
-  /* control section */
-  .control { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
-  @media (max-width: 860px) { .control { grid-template-columns: 1fr; } }
-  .control-list { display: flex; flex-direction: column; gap: 16px; margin-top: 8px; }
-  .control-item { display: flex; gap: 14px; align-items: flex-start; }
-  .check {
-    flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
-    display: grid; place-items: center; font-size: 13px; color: #05221a; font-weight: 800;
-    background: linear-gradient(180deg, #8bedd3, #3ecfa9);
-    box-shadow: inset 0 1px 1px rgba(255,255,255,.5), 0 2px 10px rgba(94,224,196,.3);
+  .specimen-frame img { display: block; border-radius: 7px; }
+  .specimen-caption {
+    position: absolute; right: 2%; bottom: -34px; transform: rotate(2deg);
+    font-family: var(--hand); font-size: 22px; color: var(--mint);
   }
-  .control-item b { display: block; font-size: 15.5px; }
-  .control-item span { font-size: 14px; color: var(--dim); }
+
+  /* ---------- ticker ---------- */
+  .ticker { margin: 170px 0 0; padding: 26px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); overflow: hidden; white-space: nowrap; }
+  .ticker-track { display: inline-block; animation: tick 36s linear infinite; }
+  .ticker span {
+    font-family: var(--serif); font-size: clamp(30px, 4.6vw, 54px); font-weight: 350; letter-spacing: .02em;
+    color: transparent; -webkit-text-stroke: 1px rgba(246,241,231,.42); padding: 0 28px;
+  }
+  .ticker span.solid { color: var(--mint); -webkit-text-stroke: 0; font-style: italic; }
+  @keyframes tick { to { transform: translateX(-50%); } }
+
+  /* ---------- chapters ---------- */
+  .chapters { padding: 190px 0 60px; }
+  .chapter { display: grid; grid-template-columns: 1fr 1.15fr; gap: 80px; align-items: center; padding: 95px 0; position: relative; }
+  .chapter + .chapter { border-top: 1px solid var(--line); }
+  .chapter:nth-child(even) .ch-art { order: -1; }
+  .folio {
+    font-family: var(--serif); font-style: italic; font-weight: 300;
+    font-size: clamp(90px, 11vw, 150px); line-height: 1; color: transparent;
+    -webkit-text-stroke: 1px rgba(94,224,196,.5);
+    position: absolute; top: 40px; opacity: .9; user-select: none;
+  }
+  .chapter:nth-child(odd) .folio { right: -10px; }
+  .chapter:nth-child(even) .folio { left: -10px; }
+  .ch-kicker { font-size: 12.5px; letter-spacing: .3em; text-transform: uppercase; color: var(--mint); margin-bottom: 22px; }
+  .chapter h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(36px, 4.6vw, 58px); line-height: 1.06; letter-spacing: -0.01em; margin-bottom: 26px; max-width: 14ch; }
+  .chapter h2 em { font-style: italic; color: var(--mint); }
+  .chapter p { color: var(--paper-dim); max-width: 44ch; line-height: 1.85; }
+  .chapter p b { color: var(--paper); font-weight: 500; }
+
+  /* chapter art pieces */
+  .art-card {
+    border: 1px solid var(--line); border-radius: 16px; padding: 34px;
+    background: linear-gradient(170deg, rgba(246,241,231,.05), rgba(246,241,231,.015));
+    box-shadow: inset 0 1px 1px rgba(255,255,255,.1);
+  }
+  .wave { display: flex; align-items: flex-end; gap: 5px; height: 90px; margin-bottom: 26px; }
+  .wave i { flex: 1; background: linear-gradient(var(--mint), var(--mint-deep)); border-radius: 3px; animation: wv 1.3s ease-in-out infinite alternate; min-height: 8%; }
+  @keyframes wv { to { height: var(--h); } }
+  .type-line { font-family: var(--mono); font-size: 13.5px; line-height: 2.15; color: var(--paper-dim); }
+  .type-line b { color: var(--paper-faint); font-weight: 400; margin-right: 12px; }
+  .type-line .cursor { display: inline-block; width: 8px; height: 15px; background: var(--mint); vertical-align: -2px; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .draft { font-family: var(--hand); font-size: 24px; line-height: 1.7; color: var(--paper-dim); }
+  .draft s { text-decoration-color: rgba(255,120,90,.6); text-decoration-thickness: 2px; }
+  .fair { border-top: 1px dashed var(--line); margin-top: 22px; padding-top: 22px; font-size: 15px; line-height: 2; }
+  .fair li { list-style: none; padding-left: 26px; position: relative; color: var(--paper-dim); }
+  .fair li::before { content: '✓'; position: absolute; left: 0; color: var(--mint); font-weight: 700; }
+  .fair li b { color: var(--paper); font-weight: 500; }
+  .becomes { font-family: var(--hand); color: var(--mint); font-size: 21px; margin: 14px 0 0 6px; display: inline-block; transform: rotate(-2deg); }
+
+  .pull-quote { position: relative; padding: 10px 0 0 40px; }
+  .pull-quote::before { content: '“'; font-family: var(--serif); font-size: 130px; line-height: 1; position: absolute; left: -12px; top: -14px; color: var(--mint); opacity: .85; }
+  .pull-quote blockquote { font-family: var(--serif); font-style: italic; font-weight: 350; font-size: clamp(22px, 2.6vw, 30px); line-height: 1.45; }
+  .pull-quote .answer { margin-top: 24px; font-size: 15px; color: var(--paper-dim); line-height: 1.85; border-left: 2px solid var(--mint); padding-left: 18px; }
+  .pull-quote .answer b { color: var(--paper); font-weight: 500; }
+
+  /* ---------- oath (manuscript page) ---------- */
+  .oath { padding: 170px 0; }
+  .oath-page { max-width: 900px; margin: 0 auto; text-align: left; position: relative; }
+  .oath .ch-kicker { text-align: center; }
+  .oath-lede { font-family: var(--serif); font-weight: 370; font-size: clamp(26px, 3.4vw, 40px); line-height: 1.42; letter-spacing: .002em; }
+  .oath-lede .dropcap {
+    font-style: italic; color: var(--mint); float: left;
+    font-size: 4.1em; line-height: .78; padding: 8px 18px 0 0; font-weight: 400;
+  }
+  .oath-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 70px; margin-top: 80px; align-items: start; }
+  .vow { padding: 26px 0; border-top: 1px solid var(--line); }
+  .vow h3 { font-family: var(--serif); font-weight: 450; font-size: 21px; margin-bottom: 8px; }
+  .vow h3 span { color: var(--mint); font-style: italic; margin-right: 10px; }
+  .vow p { font-size: 15px; color: var(--paper-dim); line-height: 1.8; max-width: 40ch; }
   .terminal {
-    border-radius: 18px; border: 1px solid var(--stroke); background: rgba(10,11,10,.6);
-    box-shadow: var(--specular), 0 24px 80px rgba(0,0,0,.45);
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-    padding: 18px 20px; font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 13px; line-height: 1.9;
+    border-radius: 14px; border: 1px solid var(--line); background: rgba(8,8,7,.75);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,.08), 0 30px 90px rgba(0,0,0,.5);
+    padding: 24px 26px; font-family: var(--mono); font-size: 13px; line-height: 2.1;
+    transform: rotate(.8deg);
   }
-  .terminal .dot-row { display: flex; gap: 6px; margin-bottom: 12px; }
-  .terminal .dot-row i { width: 10px; height: 10px; border-radius: 50%; background: var(--glass-2); }
-  .terminal .c { color: var(--faint); }
-  .terminal .g { color: var(--accent); }
+  .terminal .c { color: var(--paper-faint); } .terminal .g { color: var(--mint); }
 
-  /* ecosystem */
-  .eco { text-align: center; }
-  .eco .lead { margin: 0 auto; }
-  .orbit-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 34px; }
-  .orbit {
-    padding: 10px 20px; border-radius: 999px; font-size: 14px; color: var(--dim);
-    background: var(--glass-1); border: 1px solid var(--stroke); box-shadow: var(--specular);
-    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  /* ---------- future ---------- */
+  .future { padding: 150px 0 60px; text-align: center; }
+  .future h2 { font-family: var(--serif); font-weight: 380; font-size: clamp(40px, 5.6vw, 72px); line-height: 1.05; margin: 0 auto 34px; max-width: 16ch; }
+  .future h2 em { font-style: italic; color: var(--mint); }
+  .future .lede { color: var(--paper-dim); max-width: 52ch; margin: 0 auto; line-height: 1.9; }
+  .constellation { margin: 90px auto 0; max-width: 860px; position: relative; }
+  .const-line { border: none; border-top: 1px solid var(--line); position: absolute; top: 50%; left: 0; right: 0; }
+  .const-row { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 26px 14px; position: relative; }
+  .star { display: flex; flex-direction: column; align-items: center; gap: 14px; font-size: 14px; color: var(--paper-dim); letter-spacing: .04em; }
+  .star i { width: 11px; height: 11px; border-radius: 50%; background: var(--ink); border: 1.5px solid var(--paper-faint); }
+  .star.now { color: var(--mint); font-weight: 600; }
+  .star.now i { background: var(--mint); border-color: var(--mint); box-shadow: 0 0 18px rgba(94,224,196,.7); }
+  .future-note { margin-top: 76px; font-family: var(--hand); font-size: 23px; color: var(--paper-dim); transform: rotate(-1.5deg); display: inline-block; }
+  .future-note b { color: var(--mint); font-weight: 600; }
+
+  /* ---------- colophon strip ---------- */
+  .patron { margin: 150px 0 0; padding: 68px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .patron-inner { display: flex; justify-content: space-between; align-items: center; gap: 44px; flex-wrap: wrap; }
+  .patron h3 { font-family: var(--serif); font-weight: 400; font-size: 30px; margin-bottom: 12px; }
+  .patron h3 em { color: var(--mint); font-style: italic; }
+  .patron p { color: var(--paper-dim); font-size: 15.5px; max-width: 56ch; line-height: 1.85; }
+  .patron p b { color: var(--paper); font-weight: 500; }
+  .patron a.btn-quiet { white-space: nowrap; font-size: 16px; }
+
+  /* ---------- finale ---------- */
+  .finale { padding: 200px 0 120px; text-align: center; }
+  .finale h2 { font-family: var(--serif); font-weight: 370; font-size: clamp(52px, 8.6vw, 116px); line-height: 1; letter-spacing: -0.015em; margin-bottom: 40px; }
+  .finale h2 em { font-style: italic; color: var(--mint); }
+  .finale .cta-row { justify-content: center; }
+  .finale .hero-foot { margin-top: 30px; }
+
+  footer { padding: 50px 0 60px; border-top: 1px solid var(--line); }
+  .foot-inner { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; font-size: 13px; color: var(--paper-faint); line-height: 2; }
+  footer a { color: var(--paper-dim); } footer a:hover { color: var(--paper); }
+  .colophon { font-family: var(--serif); font-style: italic; }
+
+  /* reveals */
+  .js .rv { opacity: 0; transform: translateY(26px); transition: opacity .9s cubic-bezier(.2,.6,.2,1), transform .9s cubic-bezier(.2,.6,.2,1); }
+  .js .rv.in { opacity: 1; transform: none; }
+  .js .rv.d1 { transition-delay: .08s; } .js .rv.d2 { transition-delay: .16s; } .js .rv.d3 { transition-delay: .24s; }
+
+  @media (max-width: 900px) {
+    .hero-grid, .chapter, .oath-cols { grid-template-columns: 1fr; gap: 44px; }
+    .chapter:nth-child(even) .ch-art { order: 0; }
+    .margin-note { display: none; }
+    .nav-right .hide-sm { display: none; }
+    .folio { position: static; margin-bottom: -30px; }
+    .specimen-frame { transform: none; }
   }
-  .orbit.now { color: #05221a; font-weight: 650; background: linear-gradient(180deg, #8bedd3, #3ecfa9); border-color: rgba(255,255,255,.35); }
-
-  /* concentrate strip */
-  .strip {
-    margin-top: 96px; border-radius: 22px; padding: 36px 40px;
-    display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap;
-    background: linear-gradient(120deg, rgba(94,224,196,.12), rgba(122,184,255,.08));
-    border: 1px solid rgba(94,224,196,.25);
-    box-shadow: var(--specular);
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  @media (prefers-reduced-motion: reduce) {
+    .ticker-track, .wave i, .grain, .cursor { animation: none !important; }
+    .js .rv { transition: none; opacity: 1; transform: none; }
   }
-  .strip h3 { font-size: 21px; margin-bottom: 6px; }
-  .strip p { color: var(--dim); font-size: 14.5px; max-width: 560px; }
-  .strip p b { color: var(--text); }
-
-  /* download */
-  .dl { text-align: center; padding-bottom: 40px; }
-  footer {
-    border-top: 1px solid var(--stroke); padding: 28px 0 40px;
-    display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
-    color: var(--faint); font-size: 13px;
-  }
-  footer a { color: var(--dim); } footer a:hover { color: var(--text); }
-
-  .js .reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s ease, transform .7s ease; }
-  .js .reveal.in { opacity: 1; transform: none; }
 </style>
 </head>
 <body>
-<div class="aurora"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
-<div class="grain-overlay"></div>
+<div class="glow"></div><div class="grain"></div>
 
 <nav>
-  <a class="brand" href="#"><img src="assets/logo.svg" alt="" />Scribe</a>
-  <div class="nav-links">
-    <a class="hide-sm" href="#features">Features</a>
-    <a class="hide-sm" href="#control">Privacy</a>
-    <a class="hide-sm" href="#future">Roadmap</a>
+  <a class="brand" href="#"><img src="assets/logo.svg" alt="" /><span>Scribe</span></a>
+  <div class="nav-right">
+    <a class="hide-sm" href="#craft">The craft</a>
+    <a class="hide-sm" href="#oath">The oath</a>
+    <a class="hide-sm" href="#future">What's next</a>
     <a href="https://github.com/AdityaPawarr7/scribe" target="_blank" rel="noreferrer">GitHub</a>
-    <a class="btn btn-primary btn-sm" href="https://github.com/AdityaPawarr7/scribe/releases/latest" target="_blank" rel="noreferrer">Download</a>
+    <a class="nav-cta" href="https://github.com/AdityaPawarr7/scribe/releases/latest" target="_blank" rel="noreferrer">Download</a>
   </div>
 </nav>
 
-<header class="wrap">
-  <div class="pill-row">
-    <span class="pill"><b>Free</b> &amp; open source</span>
-    <span class="pill">Runs <b>locally</b> on your Mac</span>
-    <span class="pill">No accounts · no servers · no telemetry</span>
+<header class="hero wrap">
+  <div class="overline rv">Free &amp; open source · runs on <b>your</b> Mac · est. MMXXVI</div>
+  <h1 class="rv d1">Scribing<br />is an <em>art.<svg class="flourish" viewBox="0 0 300 24" preserveAspectRatio="none"><path class="stroke-draw" d="M4 16 C 60 22, 120 6, 168 12 S 264 20, 296 8" /></svg></em></h1>
+  <div class="hero-grid">
+    <div></div>
+    <div class="hero-side rv d2">
+      <p>For five thousand years, scribes kept the record — faithfully, privately, by hand. Scribe continues the craft on your Mac: it <b>listens locally</b>, turns your rough fragments into <b>beautiful notes</b>, and never lets your words leave your machine.</p>
+      <div class="cta-row">
+        <a class="btn-ink" href="https://github.com/AdityaPawarr7/scribe/releases/latest" target="_blank" rel="noreferrer">Download for macOS</a>
+        <a class="btn-quiet" href="https://github.com/AdityaPawarr7/scribe" target="_blank" rel="noreferrer">Read the source ↗</a>
+      </div>
+      <div class="hero-foot">Apple Silicon · MIT · no accounts, no servers, no telemetry</div>
+    </div>
   </div>
-  <h1>Your meetings.<br /><span class="shimmer">Your machine. Your notes.</span></h1>
-  <p class="sub">Scribe records and transcribes your meetings entirely on your Mac, then turns your rough fragments into polished notes with the AI model of your choice. You stay in control of your information — always.</p>
-  <div class="cta-row">
-    <a class="btn btn-primary" href="https://github.com/AdityaPawarr7/scribe/releases/latest" target="_blank" rel="noreferrer">⬇ Download for macOS</a>
-    <a class="btn btn-ghost" href="https://github.com/AdityaPawarr7/scribe" target="_blank" rel="noreferrer">★ Star on GitHub</a>
+  <div class="margin-note mn-hero rv d3">audio never leaves<br /><span class="u">this machine</span> — promise.
+    <svg width="70" height="26" viewBox="0 0 70 26"><path d="M4 4 C 20 26, 48 24, 66 10 M 58 8 l 9 1 -4 8" fill="none" stroke="#5ee0c4" stroke-width="2" stroke-linecap="round"/></svg>
   </div>
-  <div class="cta-note">Apple Silicon · MIT license · community build (right-click → Open the first time)</div>
-  <div class="shot-frame reveal"><img src="assets/hero.png" alt="Scribe showing enhanced meeting notes and a live transcript" /></div>
 </header>
 
-<section id="features" class="wrap">
-  <div class="kicker reveal">What it does</div>
-  <h2 class="reveal">Notes that write themselves,<br />from audio that never leaves.</h2>
-  <div class="grid">
-    <div class="card reveal"><span class="ico">🎙️</span><h3>Local live transcription</h3><p>whisper.cpp turns speech to text <b>on-device</b> while the meeting runs. The recording exists in exactly one place: your disk.</p></div>
-    <div class="card reveal"><span class="ico">✦</span><h3>Auto-notes on Stop</h3><p>Hit stop and your fragments + the transcript become structured notes — summary, decisions, action items with owners. Meetings even <b>title themselves</b>.</p></div>
-    <div class="card reveal"><span class="ico">💬</span><h3>Ask your notes</h3><p>A built-in chat over every meeting you've captured. <b>“What did I promise last week?”</b> — answered, with sources.</p></div>
-    <div class="card reveal"><span class="ico">🔑</span><h3>Any model, your key</h3><p>One <b>Concentrate AI</b> key unlocks Claude, GPT, Gemini and 150+ models — switch from a dropdown. The free tier runs Scribe at <b>$0</b>.</p></div>
-    <div class="card reveal"><span class="ico">📄</span><h3>Your data is just files</h3><p>Plain JSON + WAV on your disk. Grep them, back them up, delete them. <b>No export button needed</b> — nothing was taken from you.</p></div>
-    <div class="card reveal"><span class="ico">🫧</span><h3>Liquid glass, your way</h3><p>Dark &amp; light glass themes, six accent colors, four font packs. It's your desk — it should look like it.</p></div>
+<section class="specimen wrap">
+  <div class="specimen-frame rv">
+    <img src="assets/hero.png" alt="Scribe: enhanced meeting notes beside a live local transcript" />
+    <div class="specimen-caption">← written by Scribe, unedited</div>
   </div>
 </section>
 
-<section id="control" class="wrap">
-  <div class="control">
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-track">
+    <span>your machine</span><span class="solid">✳</span><span>your keys</span><span class="solid">✳</span><span>your files</span><span class="solid">✳</span><span class="solid">free forever</span><span class="solid">✳</span><span>your machine</span><span class="solid">✳</span><span>your keys</span><span class="solid">✳</span><span>your files</span><span class="solid">✳</span><span class="solid">free forever</span><span class="solid">✳</span>
+  </div>
+</div>
+
+<section id="craft" class="chapters wrap">
+  <div class="chapter">
     <div>
-      <div class="kicker reveal">You're in control</div>
-      <h2 class="reveal">Meetings are sensitive.<br />Treat them that way.</h2>
-      <p class="lead reveal">Who you met, what was promised, what you really think — that's yours. Scribe is built so it stays yours.</p>
-      <div class="control-list">
-        <div class="control-item reveal"><span class="check">✓</span><div><b>Audio never uploaded</b><span>Capture and transcription are 100% local. There's no cloud to trust because there's no cloud at all.</span></div></div>
-        <div class="control-item reveal"><span class="check">✓</span><div><b>Text-only, key-only AI</b><span>Enhancement and chat send text to the model you chose with your own key — never audio, never to us.</span></div></div>
-        <div class="control-item reveal"><span class="check">✓</span><div><b>Free forever</b><span>MIT-licensed open source. No subscription, no seats, no premium tier. Read every line on GitHub.</span></div></div>
+      <div class="folio rv">№ 1</div>
+      <div class="ch-kicker rv">The craft · hearing</div>
+      <h2 class="rv d1">It listens so<br />you can <em>think.</em></h2>
+      <p class="rv d2">While the meeting runs, whisper.cpp turns speech to text <b>entirely on your Mac</b> — the transcript unfurls live in the margin. The recording exists in exactly one place on Earth: your disk.</p>
+    </div>
+    <div class="ch-art rv d2">
+      <div class="art-card">
+        <div class="wave" aria-hidden="true"></div>
+        <div class="type-line"><b>0:04</b>so on timing — we kick off the Series B in early Q4…</div>
+        <div class="type-line"><b>0:21</b>burn is steady at four hundred K a month…</div>
+        <div class="type-line"><b>0:47</b>the VP of Engineering search is the blocker…<span class="cursor"></span></div>
       </div>
     </div>
-    <div class="terminal reveal">
-      <div class="dot-row"><i></i><i></i><i></i></div>
-      <div><span class="c"># your meetings are just files</span></div>
-      <div><span class="g">$</span> ls ~/Library/Application\ Support/Scribe/meetings/a1b2/</div>
-      <div>meeting.json&nbsp;&nbsp;audio.wav</div>
-      <div><span class="g">$</span> cat meeting.json | jq .title</div>
-      <div>"Northstar Robotics — Series B sync"</div>
-      <div><span class="c"># no accounts. no servers. no telemetry.</span></div>
-      <div><span class="g">$</span> whoami</div>
-      <div>the only one with access</div>
+  </div>
+
+  <div class="chapter">
+    <div>
+      <div class="folio rv">№ 2</div>
+      <div class="ch-kicker rv">The craft · writing</div>
+      <h2 class="rv d1">Fragments in.<br /><em>Fair copy</em> out.</h2>
+      <p class="rv d2">Scribble half-thoughts while people talk — that's all Scribe needs. The moment you hit stop, your shorthand and the transcript are inked into structured notes: summary, decisions, action items with owners. The meeting even <b>titles itself.</b></p>
+    </div>
+    <div class="ch-art rv d2">
+      <div class="art-card">
+        <div class="draft">series B timing — Q4?<br /><s>vp eng??</s> maya's intro<br />burn ~$400k/mo…</div>
+        <span class="becomes">becomes ↓</span>
+        <ul class="fair">
+          <li><b>Series B kicks off early Q4</b>, gated on the Osaka pilot</li>
+          <li>Burn steady at <b>$400k/mo → 19 months runway</b></li>
+          <li><b>Adi</b> — warm intro to Kepler Capital</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div>
+      <div class="folio rv">№ 3</div>
+      <div class="ch-kicker rv">The craft · memory</div>
+      <h2 class="rv d1">A scribe<br />never <em>forgets.</em></h2>
+      <p class="rv d2">Every meeting you've ever captured becomes one long, searchable memory. Ask in plain words; Scribe answers from your own record — and tells you <b>which meeting</b> it's quoting.</p>
+    </div>
+    <div class="ch-art rv d2">
+      <div class="pull-quote">
+        <blockquote>What did I promise last week?</blockquote>
+        <div class="answer">You owe <b>Kepler Capital a warm intro</b> — promised in <b>Northstar Robotics — Series B sync</b>, July 7. The founders send the updated deck Friday.</div>
+      </div>
     </div>
   </div>
 </section>
 
-<section id="future" class="wrap eco">
-  <div class="kicker reveal">Where this is going</div>
-  <h2 class="reveal">An ecosystem agent that<br />keeps track of your life.</h2>
-  <p class="lead reveal">Meetings are just the start. Scribe will plug into your calendar, mail, and calls — so it knows what's coming, captures what happened, and remembers what was promised. On the same terms as today: local-first, your keys, your files, free.</p>
-  <div class="orbit-row reveal">
-    <span class="orbit now">Meetings — today</span>
-    <span class="orbit">Google Calendar &amp; Gmail</span>
-    <span class="orbit">Outlook</span>
-    <span class="orbit">Apple Calendar &amp; Notes</span>
-    <span class="orbit">Zoom</span>
-    <span class="orbit">Meet</span>
-    <span class="orbit">Teams</span>
-    <span class="orbit">MCP — your notes, any agent</span>
-  </div>
-
-  <div class="strip reveal">
-    <div style="text-align:left">
-      <h3>⚡ Powered by Concentrate AI</h3>
-      <p>Scribe stays model-agnostic thanks to <b>Concentrate</b> — one API key, one endpoint, and the entire <b>model fortress</b>: Claude, GPT, Gemini and 150+ models with transparent per-token pricing, including a <b>free model</b> that runs Scribe end-to-end at $0.</p>
+<section id="oath" class="oath wrap">
+  <div class="oath-page">
+    <div class="ch-kicker rv" style="margin-bottom: 46px">The scribe's oath</div>
+    <p class="oath-lede rv d1"><span class="dropcap">W</span>hat is said in your meetings — who you met, what was promised, what you really think — is among the most sensitive information you produce. A good scribe guards it with their life. Ours guards it with <em style="color: var(--mint)">architecture</em>: there are no servers to breach, no accounts to leak, no cloud to subpoena. There is only your Mac, and what you choose to do with it.</p>
+    <div class="oath-cols">
+      <div>
+        <div class="vow rv"><h3><span>I.</span>Audio never leaves</h3><p>Recording and transcription are 100% local. Nothing is uploaded — to us or anyone. There is no “us.”</p></div>
+        <div class="vow rv d1"><h3><span>II.</span>Your data is just files</h3><p>Plain JSON and WAV on your disk. Grep them, back them up, burn them. No export button — nothing was ever taken.</p></div>
+        <div class="vow rv d2"><h3><span>III.</span>Free, forever</h3><p>MIT-licensed open source. No subscription, no seats, no premium tier. The AI is your key, your choice — even the $0 one.</p></div>
+      </div>
+      <div class="terminal rv d2">
+        <div class="c"># your meetings are just files</div>
+        <div><span class="g">$</span> ls ~/…/Scribe/meetings/a1b2/</div>
+        <div>meeting.json&nbsp;&nbsp;audio.wav</div>
+        <div><span class="g">$</span> cat meeting.json | jq .title</div>
+        <div>"Northstar Robotics — Series B sync"</div>
+        <div class="c"># no accounts. no servers. no telemetry.</div>
+        <div><span class="g">$</span> whoami</div>
+        <div>the only one with access</div>
+      </div>
     </div>
-    <a class="btn btn-ghost" href="https://concentrate.ai" target="_blank" rel="noreferrer">Get a key →</a>
   </div>
 </section>
 
-<section class="wrap dl">
-  <h2 class="reveal">Own your notes today.</h2>
-  <p class="lead reveal" style="margin: 0 auto 30px">Free. Open source. Two-minute setup.</p>
-  <div class="cta-row reveal">
-    <a class="btn btn-primary" href="https://github.com/AdityaPawarr7/scribe/releases/latest" target="_blank" rel="noreferrer">⬇ Download for macOS</a>
-    <a class="btn btn-ghost" href="https://github.com/AdityaPawarr7/scribe" target="_blank" rel="noreferrer">View source</a>
+<section id="future" class="future wrap">
+  <div class="ch-kicker rv">Where the craft goes next</div>
+  <h2 class="rv d1">One scribe for<br />your <em>whole life.</em></h2>
+  <p class="lede rv d2">Meetings are the first chapter. Next, Scribe learns your calendar, your mail, your calls — so it knows what's coming, captures what happened, and remembers what was promised. Always on the same terms: local-first, your keys, your files, free.</p>
+  <div class="constellation rv d2">
+    <div class="const-row">
+      <div class="star now"><i></i>Meetings — today</div>
+      <div class="star"><i></i>Google</div>
+      <div class="star"><i></i>Outlook</div>
+      <div class="star"><i></i>Apple</div>
+      <div class="star"><i></i>Zoom</div>
+      <div class="star"><i></i>Meet</div>
+      <div class="star"><i></i>Teams</div>
+      <div class="star"><i></i>MCP</div>
+    </div>
   </div>
+  <div class="future-note rv d3">an <b>ecosystem agent</b> that keeps track of your life —<br />and answers only to you</div>
+
+  <div class="patron">
+    <div class="patron-inner">
+      <div class="rv" style="text-align:left">
+        <h3>Inked with <em>Concentrate.</em></h3>
+        <p>Scribe stays model-agnostic through <b>Concentrate AI</b> — one key, one endpoint, and the whole model fortress: Claude, GPT, Gemini and 150+ models with honest per-token pricing. Their free model runs Scribe end-to-end at <b>$0.</b></p>
+      </div>
+      <a class="btn-quiet rv d1" href="https://concentrate.ai" target="_blank" rel="noreferrer">Get a key at concentrate.ai ↗</a>
+    </div>
+  </div>
+</section>
+
+<section class="finale wrap">
+  <h2 class="rv">Own your <em>notes.</em></h2>
+  <div class="cta-row rv d1">
+    <a class="btn-ink" href="https://github.com/AdityaPawarr7/scribe/releases/latest" target="_blank" rel="noreferrer">Download for macOS</a>
+    <a class="btn-quiet" href="https://github.com/AdityaPawarr7/scribe" target="_blank" rel="noreferrer">Star on GitHub ↗</a>
+  </div>
+  <div class="hero-foot rv d2">free · two-minute setup · right-click → Open the first time (community build)</div>
 </section>
 
 <footer class="wrap">
-  <div>🌾 Scribe — MIT licensed, made with whisper.cpp &amp; Concentrate AI</div>
-  <div><a href="https://github.com/AdityaPawarr7/scribe" target="_blank" rel="noreferrer">GitHub</a> · <a href="https://github.com/AdityaPawarr7/scribe/releases/latest" target="_blank" rel="noreferrer">Releases</a> · <a href="https://concentrate.ai" target="_blank" rel="noreferrer">Concentrate</a></div>
+  <div class="foot-inner">
+    <div class="colophon">Set in Fraunces, Space Grotesk &amp; Caveat. Built with whisper.cpp and Concentrate AI. MIT licensed.</div>
+    <div><a href="https://github.com/AdityaPawarr7/scribe" target="_blank" rel="noreferrer">GitHub</a> · <a href="https://github.com/AdityaPawarr7/scribe/releases/latest" target="_blank" rel="noreferrer">Releases</a> · <a href="https://concentrate.ai" target="_blank" rel="noreferrer">Concentrate</a></div>
+  </div>
 </footer>
 
 <script>
   document.documentElement.classList.add('js');
-  // safety: never leave content hidden (slow scroll-restore, print, odd embeds)
-  setTimeout(() => document.querySelectorAll('.reveal:not(.in)').forEach((el) => el.classList.add('in')), 4000);
-  const observer = new IntersectionObserver((entries) => {
-    for (const entry of entries) if (entry.isIntersecting) { entry.target.classList.add('in'); observer.unobserve(entry.target); }
-  }, { threshold: 0.12 });
-  document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+  // never leave content hidden
+  setTimeout(() => document.querySelectorAll('.rv:not(.in)').forEach((el) => el.classList.add('in')), 4000);
 
-  // gentle parallax on the hero shot
-  const shot = document.querySelector('.shot-frame');
-  addEventListener('scroll', () => {
-    const r = shot.getBoundingClientRect();
-    const t = Math.min(Math.max(1 - r.top / innerHeight, 0), 1);
-    shot.style.transform = `perspective(1400px) rotateX(${4 - t * 4}deg)`;
-  }, { passive: true });
+  const io = new IntersectionObserver((es) => {
+    for (const e of es) if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.rv').forEach((el) => io.observe(el));
+
+  // hand-drawn flourish draws itself
+  const stroke = document.querySelector('.stroke-draw');
+  if (stroke) {
+    const len = stroke.getTotalLength();
+    stroke.style.strokeDasharray = len;
+    stroke.style.strokeDashoffset = len;
+    stroke.getBoundingClientRect();
+    stroke.style.transition = 'stroke-dashoffset 1.6s cubic-bezier(.4,0,.2,1) .5s';
+    stroke.style.strokeDashoffset = '0';
+  }
+
+  // waveform bars with organic heights
+  const wave = document.querySelector('.wave');
+  if (wave) for (let i = 0; i < 42; i++) {
+    const bar = document.createElement('i');
+    const h = 12 + Math.abs(Math.sin(i * 0.55)) * 74 + (i % 5) * 3;
+    bar.style.setProperty('--h', h + '%');
+    bar.style.height = (h * 0.35) + '%';
+    bar.style.animationDelay = (i * 0.045) + 's';
+    wave.appendChild(bar);
+  }
 </script>
 </body>
 </html>
