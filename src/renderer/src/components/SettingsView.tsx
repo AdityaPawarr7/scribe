@@ -20,7 +20,7 @@ function Toggle(props: { on: boolean; onChange: (on: boolean) => void }): React.
   )
 }
 
-export default function SettingsModal(props: Props): React.JSX.Element {
+export default function SettingsView(props: Props): React.JSX.Element {
   const [settings, setSettings] = useState<Settings | null>(null)
   const [status, setStatus] = useState<WhisperStatus | null>(null)
   const [downloading, setDownloading] = useState(false)
@@ -52,7 +52,7 @@ export default function SettingsModal(props: Props): React.JSX.Element {
     }
   }
 
-  if (!settings) return <div className="modal-backdrop" />
+  if (!settings) return <div className="settings-page" />
 
   const pct =
     progress && progress.totalBytes > 0
@@ -60,14 +60,14 @@ export default function SettingsModal(props: Props): React.JSX.Element {
       : null
 
   return (
-    <div className="modal-backdrop" onClick={props.onClose}>
-      <div className="modal" onClick={(event) => event.stopPropagation()}>
-        <div className="modal-header">
-          <h2>Settings</h2>
-          <button className="banner-close" onClick={props.onClose}>
-            ✕
+    <div className="settings-page">
+      <div className="settings-col">
+        <header className="settings-header">
+          <h1>Settings</h1>
+          <button className="secondary" onClick={props.onClose}>
+            Done
           </button>
-        </div>
+        </header>
 
         <h3>You</h3>
         <div className="setting-row">
@@ -119,7 +119,7 @@ export default function SettingsModal(props: Props): React.JSX.Element {
             </span>
           </div>
           <div className="setting-control">
-            <ModelSelect compact value={settings.model} onChange={(model) => save({ model })} />
+            <ModelSelect value={settings.model} onChange={(model) => save({ model })} />
           </div>
         </div>
 
@@ -153,32 +153,41 @@ export default function SettingsModal(props: Props): React.JSX.Element {
 
         <details className="advanced">
           <summary>Advanced</summary>
-          <label>
-            whisper-cli path
+          <div className="setting-row">
+            <div className="setting-info">
+              <strong>whisper-cli path</strong>
+            </div>
             <input
+              className="setting-input"
               type="text"
               placeholder="auto-detected"
               value={settings.whisperBinaryPath}
               onChange={(event) => save({ whisperBinaryPath: event.target.value })}
             />
-          </label>
-          <label>
-            Speech model path
+          </div>
+          <div className="setting-row">
+            <div className="setting-info">
+              <strong>Speech model path</strong>
+            </div>
             <input
+              className="setting-input"
               type="text"
               placeholder="auto-detected"
               value={settings.whisperModelPath}
               onChange={(event) => save({ whisperModelPath: event.target.value })}
             />
-          </label>
-          <label>
-            Spoken language
+          </div>
+          <div className="setting-row">
+            <div className="setting-info">
+              <strong>Spoken language</strong>
+            </div>
             <input
+              className="setting-input"
               type="text"
               value={settings.language}
               onChange={(event) => save({ language: event.target.value })}
             />
-          </label>
+          </div>
         </details>
       </div>
     </div>

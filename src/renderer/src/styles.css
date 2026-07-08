@@ -29,7 +29,7 @@ body,
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'American Typewriter', 'Courier Prime', 'Courier New', ui-monospace, monospace;
   background: var(--scrim); /* vibrancy shows through beneath this tint */
   color: var(--text);
   font-size: 14px;
@@ -1057,4 +1057,98 @@ button {
 
 .advanced label {
   margin: 8px 0;
+}
+
+/* =============================================================
+   Typewriter type + inline Settings page
+   ============================================================= */
+h1,
+h2,
+h3,
+.wordmark {
+  letter-spacing: 0.02em;
+}
+
+.wordmark {
+  font-size: 16px;
+}
+
+.settings-page {
+  flex: 1;
+  overflow-y: auto;
+  padding: 40px 32px 32px;
+}
+
+.settings-col {
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.settings-header h1 {
+  font-size: 24px;
+}
+
+.settings-col h3 {
+  margin: 22px 0 6px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+}
+
+.settings-col a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.settings-col .status-row {
+  padding: 4px 14px;
+}
+
+/* aligned two-column rows: info stretches, control column is fixed */
+.settings-col .setting-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 240px;
+  align-items: center;
+  gap: 16px;
+}
+
+.settings-col .setting-row:has(.toggle),
+.settings-col .setting-row:has(.pill) {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.settings-col .setting-input {
+  width: 100%;
+}
+
+.settings-col .setting-control {
+  width: 100%;
+}
+
+.settings-col .setting-control .model-select {
+  margin-top: 0;
+}
+
+.settings-col .toggle,
+.settings-col .pill,
+.settings-col .setting-row .primary {
+  justify-self: end;
+}
+
+.settings-col .advanced {
+  margin: 20px 0 8px;
+}
+
+.settings-col .advanced summary {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
 }

@@ -3,7 +3,7 @@ import type { Meeting, MeetingSummary, TranscriptSegment } from './env'
 import { MicRecorder } from './recorder'
 import Sidebar from './components/Sidebar'
 import MeetingView from './components/MeetingView'
-import SettingsModal from './components/SettingsModal'
+import SettingsView from './components/SettingsView'
 import Onboarding from './components/Onboarding'
 import Logo from './components/Logo'
 
@@ -14,7 +14,7 @@ export default function App(): React.JSX.Element {
   const [recordSeconds, setRecordSeconds] = useState(0)
   const [enhancing, setEnhancing] = useState(false)
   const [enhanceBuffer, setEnhanceBuffer] = useState('')
-  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [banner, setBanner] = useState<string | null>(null)
 
@@ -85,12 +85,14 @@ export default function App(): React.JSX.Element {
   }, [recordingId])
 
   const selectMeeting = useCallback(async (id: string) => {
+    setShowSettings(false)
     setEnhanceBuffer('')
     setEnhancing(false)
     setMeeting(await window.scribe.meetings.get(id))
   }, [])
 
   const createMeeting = useCallback(async () => {
+    setShowSettings(false)
     const created = await window.scribe.meetings.create()
     await refreshList()
     setEnhanceBuffer('')
@@ -130,7 +132,7 @@ export default function App(): React.JSX.Element {
             ? 'whisper-cli not found — install it with `brew install whisper-cpp` or set its path in Settings'
             : 'No Whisper model yet — download it from Settings (one-time, ~150MB)'
         )
-        setSettingsOpen(true)
+        setShowSettings(true)
         return
       }
       const recorder = new MicRecorder((chunk) => window.scribe.recording.sendAudio(chunk))
@@ -192,7 +194,7 @@ export default function App(): React.JSX.Element {
         onSelect={(id) => void selectMeeting(id)}
         onCreate={() => void createMeeting()}
         onDelete={(id) => void deleteMeeting(id)}
-        onOpenSettings={() => setSettingsOpen(true)}
+        onOpenSettings={() => setShowSettings(true)}
       />
       <main className="content">
         {banner && (
@@ -203,7 +205,9 @@ export default function App(): React.JSX.Element {
             </button>
           </div>
         )}
-        {meeting ? (
+        {showSettings ? (
+          <SettingsView onClose={() => setShowSettings(false)} />
+        ) : meeting ? (
           <MeetingView
             meeting={meeting}
             isRecording={recordingId === meeting.id}
@@ -229,7 +233,6 @@ export default function App(): React.JSX.Element {
           </div>
         )}
       </main>
-      {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
       {showOnboarding && <Onboarding onDone={() => setShowOnboarding(false)} />}
     </div>
   )
