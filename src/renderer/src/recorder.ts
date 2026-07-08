@@ -2,19 +2,6 @@ const TARGET_SAMPLE_RATE = 16000
 /** batch ~0.5s of audio per IPC message */
 const BATCH_SAMPLES = 8000
 
-const WORKLET_SOURCE = `
-class PcmCaptureProcessor extends AudioWorkletProcessor {
-  process(inputs) {
-    const channel = inputs[0] && inputs[0][0]
-    if (channel && channel.length > 0) {
-      this.port.postMessage(channel.slice(0))
-    }
-    return true
-  }
-}
-registerProcessor('pcm-capture', PcmCaptureProcessor)
-`
-
 export class MicRecorder {
   private stream: MediaStream | null = null
   private context: AudioContext | null = null
@@ -37,14 +24,10 @@ export class MicRecorder {
     // A 16kHz context makes WebAudio resample the mic input for us,
     // which is exactly what whisper.cpp wants.
     this.context = new AudioContext({ sampleRate: TARGET_SAMPLE_RATE })
-    const workletUrl = URL.createObjectURL(
-      new Blob([WORKLET_SOURCE], { type: 'application/javascript' })
+    // static asset (src/renderer/public/) — a blob: worklet would violate CSP script-src 'self'
+    await this.context.audioWorklet.addModule(
+      new URL('pcm-worklet.js', document.baseURI).toString()
     )
-    try {
-      await this.context.audioWorklet.addModule(workletUrl)
-    } finally {
-      URL.revokeObjectURL(workletUrl)
-    }
 
     const source = this.context.createMediaStreamSource(this.stream)
     this.node = new AudioWorkletNode(this.context, 'pcm-capture')
