@@ -65,7 +65,7 @@ On first launch Scribe walks you through everything: downloading the speech mode
 
 Then create a meeting and hit Record.
 
-> **Note on capture:** v0.1 records your **microphone** only. For in-person meetings and calls on speaker this works out of the box. Capturing system audio (the other side of a headphones call) requires a native ScreenCaptureKit helper — it's the top item on the roadmap.
+> **Note on capture:** Scribe records your microphone **and** system audio, so it hears both sides of any call even on headphones. The first time, macOS will ask you to allow **Screen & System Audio Recording** for Scribe (System Settings → Privacy & Security) — that's the loopback permission; no screen content is stored.
 
 ## Architecture
 
@@ -86,9 +86,9 @@ Meetings are just the start. Future releases will plug Scribe into **Outlook, Go
 
 Rough order:
 
-- [ ] **System audio capture** (macOS ScreenCaptureKit helper) — hear both sides of a call
+- [x] **System audio capture** — both sides of any call, via ScreenCaptureKit loopback
 - [ ] Calendar + mail integration (Outlook, Google, Apple) — meetings appear before they start, attendees attached
-- [ ] Zoom / Meet / Teams awareness — know what call you're on, capture both sides
+- [ ] Zoom / Meet / Teams awareness — know what call you're on, attach the right attendees
 - [ ] The ecosystem agent — one place that tracks commitments, people, and follow-ups across your life
 - [ ] Note templates (1:1s, pitches, standups, user interviews)
 - [x] Ask-your-meetings chat (Q&A across all your notes)
