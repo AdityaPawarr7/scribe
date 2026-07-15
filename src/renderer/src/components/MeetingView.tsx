@@ -91,15 +91,29 @@ function formatClock(totalSeconds: number): string {
 export default function MeetingView(props: Props): React.JSX.Element {
   const { meeting } = props
   const [tab, setTab] = useState<Tab>('notes')
+  const [sideTab, setSideTab] = useState<'transcript' | 'pulse'>('transcript')
+  const [pulseUnseen, setPulseUnseen] = useState(false)
   const [notes, setNotes] = useState(meeting.notes)
   const [showTranscript, setShowTranscript] = useState(true)
   const transcriptEndRef = useRef<HTMLDivElement | null>(null)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const prevPulseCount = useRef(meeting.pulses.length)
+
+  // a new pulse glows on the tab instead of barging into the transcript
+  useEffect(() => {
+    if (meeting.pulses.length > prevPulseCount.current && sideTab !== 'pulse') {
+      setPulseUnseen(true)
+    }
+    prevPulseCount.current = meeting.pulses.length
+  }, [meeting.pulses.length, sideTab])
 
   // reset local state when switching meetings
   useEffect(() => {
     setNotes(meeting.notes)
     setTab('notes')
+    setSideTab('transcript')
+    setPulseUnseen(false)
+    prevPulseCount.current = meeting.pulses.length
   }, [meeting.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // switch to the enhanced tab while streaming
@@ -195,34 +209,73 @@ export default function MeetingView(props: Props): React.JSX.Element {
 
         {showTranscript && (
           <aside className="transcript-pane">
-            <div className="transcript-title">
-              Transcript
+            <div className="side-header">
+              <div className="side-tabs">
+                <button
+                  className={sideTab === 'transcript' ? 'side-tab active' : 'side-tab'}
+                  onClick={() => setSideTab('transcript')}
+                >
+                  Transcript
+                </button>
+                <button
+                  className={sideTab === 'pulse' ? 'side-tab active' : 'side-tab'}
+                  onClick={() => {
+                    setSideTab('pulse')
+                    setPulseUnseen(false)
+                  }}
+                >
+                  ✦ Pulse
+                  {meeting.pulses.length > 0 && (
+                    <span className="side-count">{meeting.pulses.length}</span>
+                  )}
+                  {pulseUnseen && <span className="pulse-dot" />}
+                </button>
+              </div>
               {props.isRecording && <span className="live-pill">LIVE</span>}
             </div>
-            {props.isRecording && <ScribeAtWork />}
-            {meeting.pulses.length > 0 ? (
-              <PulseCard pulse={meeting.pulses[meeting.pulses.length - 1]} count={meeting.pulses.length} />
+
+            {sideTab === 'transcript' ? (
+              <>
+                {props.isRecording && <ScribeAtWork />}
+                <div className="transcript-scroll">
+                  {meeting.transcript.length === 0 && (
+                    <div className="transcript-empty">
+                      {props.isRecording
+                        ? 'Listening… first words land in seconds.'
+                        : 'No transcript yet. Hit Record to capture this meeting.'}
+                    </div>
+                  )}
+                  {meeting.transcript.map((segment, index) => (
+                    <div className="transcript-segment" key={index}>
+                      <span className="transcript-time">{formatClock(segment.t)}</span>
+                      <span>{segment.text}</span>
+                    </div>
+                  ))}
+                  <div ref={transcriptEndRef} />
+                </div>
+              </>
             ) : (
-              props.isRecording && (
-                <div className="pulse-teaser">✦ Pulse is listening — first insights ~2 min in</div>
-              )
+              <div className="pulse-history">
+                {meeting.pulses.length === 0 ? (
+                  <div className="pulse-empty">
+                    <span className="glyph">✦</span>
+                    {props.isRecording
+                      ? 'Pulse is listening — first insights land about 2 minutes in, then every 5.'
+                      : 'Pulse listens while you record: every few minutes it surfaces what deserves action and what to ask next. Insights collect here.'}
+                  </div>
+                ) : (
+                  [...meeting.pulses]
+                    .reverse()
+                    .map((pulse, index) => (
+                      <PulseCard
+                        key={meeting.pulses.length - index}
+                        pulse={pulse}
+                        count={meeting.pulses.length - index}
+                      />
+                    ))
+                )}
+              </div>
             )}
-            <div className="transcript-scroll">
-              {meeting.transcript.length === 0 && (
-                <div className="transcript-empty">
-                  {props.isRecording
-                    ? 'Listening… first words land in seconds.'
-                    : 'No transcript yet. Hit Record to capture this meeting.'}
-                </div>
-              )}
-              {meeting.transcript.map((segment, index) => (
-                <div className="transcript-segment" key={index}>
-                  <span className="transcript-time">{formatClock(segment.t)}</span>
-                  <span>{segment.text}</span>
-                </div>
-              ))}
-              <div ref={transcriptEndRef} />
-            </div>
           </aside>
         )}
       </div>
