@@ -20,6 +20,9 @@ Record a meeting, type rough fragments while you talk, and when you hit Stop, AI
 ## What it does
 
 - **Live local transcription** — [whisper.cpp](https://github.com/ggerganov/whisper.cpp) turns speech to text on-device while the meeting runs.
+- **Hears the whole call** — captures your mic **and** system audio (macOS ScreenCaptureKit loopback), so Google Meet, Zoom, FaceTime, Teams — any call, any app — is transcribed from both sides. No virtual audio drivers.
+- **Pulse ✦** — every 5 minutes of a live call, Scribe surfaces the actionable points so far and the sharpest questions to ask next, right beside the transcript.
+- **Voice profile** — after real meetings, Scribe refines a local `profile.md` describing how you actually speak (pacing, phrases, habits) — the foundation for the upcoming dictation feature. Plain Markdown, on your disk, yours to edit or delete.
 - **Auto-notes** — the moment a recording stops, your fragments + the transcript become clean structured notes (summary, decisions, action items), the meeting titles itself, and notes refer to you by name.
 - **Ask your notes 💬** — built-in chat over every meeting you've captured: "what did I promise last week?"
 - **One key, 150+ models 🔑** — powered by [Concentrate AI](https://concentrate.ai), the cleanest way we've found to be model-agnostic: one API key, one endpoint, and Claude, GPT, Gemini plus 150 more in their [model fortress](https://concentrate.ai/models), swappable from a dropdown in the app. Their free `gpt-oss-120b` tier means Scribe runs end-to-end at **$0**.

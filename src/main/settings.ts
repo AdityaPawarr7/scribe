@@ -13,6 +13,9 @@ const DEFAULTS: Settings = {
   onboardingComplete: false,
   userName: '',
   autoEnhance: true,
+  captureSystemAudio: true,
+  livePulse: true,
+  voiceProfile: true,
   theme: 'dark',
   accent: '#5ee0c4',
   fontPack: 'system'

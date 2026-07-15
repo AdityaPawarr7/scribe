@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { ModelDownloadProgress, Settings, WhisperStatus } from '../env'
+import type { ModelDownloadProgress, Settings, VoiceProfileStatus, WhisperStatus } from '../env'
 import ModelSelect from './ModelSelect'
 import { ACCENTS, FONT_PACKS, applyAppearance } from '../appearance'
 
@@ -26,14 +26,23 @@ export default function SettingsView(props: Props): React.JSX.Element {
   const [status, setStatus] = useState<WhisperStatus | null>(null)
   const [downloading, setDownloading] = useState(false)
   const [progress, setProgress] = useState<ModelDownloadProgress | null>(null)
+  const [profile, setProfile] = useState<VoiceProfileStatus | null>(null)
 
   useEffect(() => {
     void window.scribe.settings.get().then(setSettings)
     void window.scribe.whisper.status().then(setStatus)
-    return window.scribe.on('whisper:downloadProgress', (p: ModelDownloadProgress) => {
+    void window.scribe.profile.status().then(setProfile)
+    const offProgress = window.scribe.on('whisper:downloadProgress', (p: ModelDownloadProgress) => {
       setProgress(p)
       if (p.done) setDownloading(false)
     })
+    const offProfile = window.scribe.on('profile:updated', (status: VoiceProfileStatus) => {
+      setProfile(status)
+    })
+    return () => {
+      offProgress()
+      offProfile()
+    }
   }, [])
 
   const save = (patch: Partial<Settings>): void => {
@@ -95,6 +104,43 @@ export default function SettingsView(props: Props): React.JSX.Element {
             <span>Enhance the moment a recording stops</span>
           </div>
           <Toggle on={settings.autoEnhance} onChange={(on) => save({ autoEnhance: on })} />
+        </div>
+
+        <h3>Calls</h3>
+        <div className="setting-row">
+          <div className="setting-info">
+            <strong>Hear the whole call</strong>
+            <span>Capture system audio — Meet, Zoom, FaceTime, any app</span>
+          </div>
+          <Toggle
+            on={settings.captureSystemAudio}
+            onChange={(on) => save({ captureSystemAudio: on })}
+          />
+        </div>
+        <div className="setting-row">
+          <div className="setting-info">
+            <strong>Pulse</strong>
+            <span>Actions &amp; questions surfaced every 5 minutes, live</span>
+          </div>
+          <Toggle on={settings.livePulse} onChange={(on) => save({ livePulse: on })} />
+        </div>
+        <div className="setting-row">
+          <div className="setting-info">
+            <strong>Voice profile</strong>
+            <span>
+              {profile?.exists
+                ? `Learned from ${profile.meetingsAnalyzed} meeting${profile.meetingsAnalyzed === 1 ? '' : 's'} — powers upcoming dictation`
+                : 'Learns how you speak into a local profile.md — powers upcoming dictation'}
+            </span>
+          </div>
+          <div className="row-controls">
+            {profile?.exists && (
+              <button className="secondary" onClick={() => void window.scribe.profile.open()}>
+                View
+              </button>
+            )}
+            <Toggle on={settings.voiceProfile} onChange={(on) => save({ voiceProfile: on })} />
+          </div>
         </div>
 
         <h3>Appearance</h3>

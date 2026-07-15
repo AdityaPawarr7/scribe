@@ -2,6 +2,8 @@
 import type {
   ChatTurn,
   ConcentrateModel,
+  PulseNote,
+  VoiceProfileStatus,
   ConnectionTestResult,
   Meeting,
   MeetingSummary,
@@ -24,6 +26,8 @@ export type EventChannel =
   | 'chat:delta'
   | 'chat:done'
   | 'chat:error'
+  | 'pulse:new'
+  | 'profile:updated'
 
 export interface ScribeApi {
   meetings: {
@@ -58,6 +62,10 @@ export interface ScribeApi {
     ask: (question: string, history: ChatTurn[]) => Promise<void>
     cancel: () => Promise<void>
   }
+  profile: {
+    status: () => Promise<VoiceProfileStatus>
+    open: () => Promise<void>
+  }
   on: (channel: EventChannel, listener: (...args: never[]) => void) => () => void
 }
 
@@ -70,6 +78,8 @@ declare global {
 export type {
   ChatTurn,
   ConcentrateModel,
+  PulseNote,
+  VoiceProfileStatus,
   ConnectionTestResult,
   Meeting,
   MeetingSummary,

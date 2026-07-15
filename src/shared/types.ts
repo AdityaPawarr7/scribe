@@ -4,6 +4,14 @@ export interface TranscriptSegment {
   text: string
 }
 
+export interface PulseNote {
+  /** seconds into the call when this pulse was taken */
+  t: number
+  summary: string
+  actions: string[]
+  questions: string[]
+}
+
 export interface Meeting {
   id: string
   title: string
@@ -14,6 +22,7 @@ export interface Meeting {
   enhancedNotes: string
   durationSec: number
   hasAudio: boolean
+  pulses: PulseNote[]
 }
 
 export interface MeetingSummary {
@@ -36,6 +45,12 @@ export interface Settings {
   userName: string
   /** run enhancement automatically when a recording stops */
   autoEnhance: boolean
+  /** also capture system audio (the other side of Meet/Zoom/FaceTime) */
+  captureSystemAudio: boolean
+  /** surface actions + questions every few minutes while recording */
+  livePulse: boolean
+  /** maintain a local profile.md of how the user speaks */
+  voiceProfile: boolean
   theme: 'dark' | 'light'
   /** accent color hex */
   accent: string
@@ -76,4 +91,10 @@ export interface ModelDownloadProgress {
   totalBytes: number
   done: boolean
   error?: string
+}
+
+export interface VoiceProfileStatus {
+  exists: boolean
+  meetingsAnalyzed: number
+  path: string
 }

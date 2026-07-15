@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, nativeTheme, shell, systemPreferences } from 'electron'
+import { app, BrowserWindow, desktopCapturer, ipcMain, nativeTheme, session, shell, systemPreferences } from 'electron'
 import { cpSync, existsSync } from 'fs'
 import { join } from 'path'
 import { loadSettings, saveSettings, whisperStatus } from './settings'
@@ -6,6 +6,8 @@ import * as store from './store'
 import { RecordingSession } from './transcriber'
 import { enhanceMeeting, generateTitle } from './enhancer'
 import { askChat } from './chat'
+import { generatePulse } from './pulse'
+import { profilePath, profileStatus, updateVoiceProfile } from './voiceprofile'
 import { downloadModel } from './modelDownload'
 import { listModels, testConnection } from './concentrate'
 import type { ChatTurn, Meeting, Settings } from '@shared/types'
@@ -14,6 +16,9 @@ import type { ChatTurn, Meeting, Settings } from '@shared/types'
 // (dev, lowercase package name) — carry meetings, settings, and the
 // whisper model over to this build's data dir.
 function migrateOldData(): void {
+  // never migrate into a bare `electron .` launch — that identity is shared
+  // by every generic Electron binary on the machine
+  if (app.getName() === 'Electron') return
   const newDir = app.getPath('userData')
   if (existsSync(join(newDir, 'settings.json'))) return
   for (const oldName of ['scribe', 'muesli']) {
@@ -32,6 +37,46 @@ function migrateOldData(): void {
 let mainWindow: BrowserWindow | null = null
 let activeRecording: RecordingSession | null = null
 const activeEnhancements = new Map<string, { cancel: () => void }>()
+
+// ---- pulse: periodic in-call insights ----
+const PULSE_INTERVAL_MS = 5 * 60 * 1000
+const PULSE_MIN_NEW_SEGMENTS = 3
+let pulseTimer: ReturnType<typeof setInterval> | null = null
+let pulseCursor = 0 // transcript segments already covered by a pulse
+let pulseBusy = false
+
+async function runPulse(meetingId: string): Promise<void> {
+  if (pulseBusy) return
+  const meeting = store.getMeeting(meetingId)
+  if (!meeting || meeting.transcript.length - pulseCursor < PULSE_MIN_NEW_SEGMENTS) return
+  pulseBusy = true
+  pulseCursor = meeting.transcript.length
+  try {
+    const pulse = await generatePulse(meeting)
+    if (pulse) {
+      const fresh = store.getMeeting(meetingId)
+      if (fresh) {
+        fresh.pulses.push(pulse)
+        store.saveMeeting(fresh)
+        send('pulse:new', meetingId, pulse)
+      }
+    }
+  } finally {
+    pulseBusy = false
+  }
+}
+
+function startPulseLoop(meetingId: string): void {
+  stopPulseLoop()
+  pulseCursor = 0
+  if (!loadSettings().livePulse) return
+  pulseTimer = setInterval(() => void runPulse(meetingId), PULSE_INTERVAL_MS)
+}
+
+function stopPulseLoop(): void {
+  if (pulseTimer) clearInterval(pulseTimer)
+  pulseTimer = null
+}
 
 function createWindow(): void {
   mainWindow = new BrowserWindow({
@@ -56,6 +101,22 @@ function createWindow(): void {
       contextIsolation: true
     }
   })
+
+  // System-audio capture: when the renderer asks for display media we hand it
+  // macOS loopback audio (ScreenCaptureKit under the hood) — this is how Scribe
+  // hears the other side of Meet/Zoom/FaceTime without any virtual driver.
+  session.defaultSession.setDisplayMediaRequestHandler(
+    (_request, callback) => {
+      desktopCapturer
+        .getSources({ types: ['screen'] })
+        .then((sources) => {
+          if (sources.length > 0) callback({ video: sources[0], audio: 'loopback' })
+          else callback({})
+        })
+        .catch(() => callback({}))
+    },
+    { useSystemPicker: false }
+  )
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     void shell.openExternal(url)
@@ -105,6 +166,7 @@ ipcMain.handle('recording:start', async (_e, meetingId: string) => {
     },
     (message) => send('transcript:error', meetingId, message)
   )
+  startPulseLoop(meetingId)
   return whisperStatus()
 })
 
@@ -113,6 +175,7 @@ ipcMain.on('recording:audio', (_e, chunk: ArrayBuffer) => {
 })
 
 ipcMain.handle('recording:stop', async () => {
+  stopPulseLoop()
   const session = activeRecording
   if (!session) return null
   activeRecording = null
@@ -134,6 +197,13 @@ ipcMain.handle('enhance:run', (_e, meetingId: string) => {
       activeEnhancements.delete(meetingId)
       store.updateMeeting(meetingId, { enhancedNotes: fullText })
       send('enhance:done', meetingId, fullText)
+      // quietly refine the local voice profile from this meeting's speech
+      const forProfile = store.getMeeting(meetingId)
+      if (forProfile) {
+        void updateVoiceProfile(forProfile).then((updated) => {
+          if (updated) send('profile:updated', profileStatus())
+        })
+      }
       // name the meeting from its content once notes exist
       const current = store.getMeeting(meetingId)
       if (current && (current.title.trim() === '' || current.title.trim() === 'Untitled')) {
@@ -182,6 +252,12 @@ ipcMain.handle('chat:cancel', () => {
 // ---- concentrate ----
 ipcMain.handle('concentrate:models', () => listModels())
 ipcMain.handle('concentrate:test', (_e, model: string) => testConnection(model))
+
+// ---- voice profile ----
+ipcMain.handle('profile:status', () => profileStatus())
+ipcMain.handle('profile:open', () => {
+  shell.showItemInFolder(profilePath())
+})
 
 // ---- settings / whisper ----
 ipcMain.handle('settings:get', () => loadSettings())

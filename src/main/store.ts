@@ -45,7 +45,9 @@ export function listMeetings(): MeetingSummary[] {
 export function getMeeting(id: string): Meeting | null {
   const path = meetingJsonPath(id)
   if (!existsSync(path)) return null
-  return JSON.parse(readFileSync(path, 'utf8')) as Meeting
+  const meeting = JSON.parse(readFileSync(path, 'utf8')) as Meeting
+  if (!Array.isArray(meeting.pulses)) meeting.pulses = [] // pre-Pulse meetings
+  return meeting
 }
 
 export function createMeeting(): Meeting {
@@ -59,7 +61,8 @@ export function createMeeting(): Meeting {
     transcript: [],
     enhancedNotes: '',
     durationSec: 0,
-    hasAudio: false
+    hasAudio: false,
+    pulses: []
   }
   saveMeeting(meeting)
   return meeting

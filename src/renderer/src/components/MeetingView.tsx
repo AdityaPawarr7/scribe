@@ -29,6 +29,7 @@ function HeaderModelPicker(): React.JSX.Element {
 interface Props {
   meeting: Meeting
   isRecording: boolean
+  hearingSystem: boolean
   recordSeconds: number
   enhancing: boolean
   enhanceBuffer: string
@@ -40,6 +41,38 @@ interface Props {
 }
 
 type Tab = 'notes' | 'enhanced'
+
+function PulseCard(props: { pulse: import('../env').PulseNote; count: number }): React.JSX.Element {
+  const { pulse } = props
+  return (
+    <div className="pulse-card">
+      <div className="pulse-head">
+        <span className="pulse-badge">✦ Pulse</span>
+        <span className="pulse-time">
+          {Math.round(pulse.t / 60)} min in{props.count > 1 ? ` · #${props.count}` : ''}
+        </span>
+      </div>
+      {pulse.summary && <div className="pulse-summary">{pulse.summary}</div>}
+      {pulse.actions.length > 0 && (
+        <ul className="pulse-list actions">
+          {pulse.actions.map((action, i) => (
+            <li key={i}>{action}</li>
+          ))}
+        </ul>
+      )}
+      {pulse.questions.length > 0 && (
+        <>
+          <div className="pulse-ask">Worth asking</div>
+          <ul className="pulse-list questions">
+            {pulse.questions.map((question, i) => (
+              <li key={i}>{question}</li>
+            ))}
+          </ul>
+        </>
+      )}
+    </div>
+  )
+}
 
 function formatNoteDate(timestamp: number): string {
   const d = new Date(timestamp)
@@ -97,8 +130,13 @@ export default function MeetingView(props: Props): React.JSX.Element {
         />
         <div className="header-actions">
           {props.isRecording ? (
-            <button className="record recording" onClick={props.onStopRecording}>
+            <button
+              className="record recording"
+              title={props.hearingSystem ? 'Hearing your mic + the call audio' : 'Hearing your mic only'}
+              onClick={props.onStopRecording}
+            >
               <span className="rec-dot" /> Stop · {formatClock(props.recordSeconds)}
+              <span className="hearing">{props.hearingSystem ? '🎙+💻' : '🎙'}</span>
             </button>
           ) : (
             <button className="record" onClick={props.onStartRecording}>
@@ -160,6 +198,9 @@ export default function MeetingView(props: Props): React.JSX.Element {
               Transcript
               {props.isRecording && <span className="live-pill">LIVE</span>}
             </div>
+            {meeting.pulses.length > 0 && (
+              <PulseCard pulse={meeting.pulses[meeting.pulses.length - 1]} count={meeting.pulses.length} />
+            )}
             <div className="transcript-scroll">
               {meeting.transcript.length === 0 && (
                 <div className="transcript-empty">

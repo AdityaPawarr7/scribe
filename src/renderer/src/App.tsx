@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { ChatTurn, Meeting, MeetingSummary, TranscriptSegment } from './env'
+import type { ChatTurn, Meeting, MeetingSummary, PulseNote, TranscriptSegment } from './env'
 import { MicRecorder } from './recorder'
 import Sidebar from './components/Sidebar'
 import MeetingView from './components/MeetingView'
@@ -13,6 +13,7 @@ export default function App(): React.JSX.Element {
   const [meetings, setMeetings] = useState<MeetingSummary[]>([])
   const [meeting, setMeeting] = useState<Meeting | null>(null)
   const [recordingId, setRecordingId] = useState<string | null>(null)
+  const [hearingSystem, setHearingSystem] = useState(false)
   const [recordSeconds, setRecordSeconds] = useState(0)
   const [enhancing, setEnhancing] = useState(false)
   const [enhanceBuffer, setEnhanceBuffer] = useState('')
@@ -67,6 +68,13 @@ export default function App(): React.JSX.Element {
         setMeeting((current) => (current ? { ...current, enhancedNotes: fullText } : current))
       }
     })
+    const offPulse = window.scribe.on('pulse:new', (meetingId: string, pulse: PulseNote) => {
+      setMeeting((current) =>
+        current && current.id === meetingId
+          ? { ...current, pulses: [...current.pulses, pulse] }
+          : current
+      )
+    })
     const offTitled = window.scribe.on('meeting:titled', (meetingId: string, title: string) => {
       setMeeting((current) => (current && current.id === meetingId ? { ...current, title } : current))
       void refreshList()
@@ -92,6 +100,7 @@ export default function App(): React.JSX.Element {
       }
     })
     return () => {
+      offPulse()
       offTitled()
       offChatDelta()
       offChatDone()
@@ -165,11 +174,19 @@ export default function App(): React.JSX.Element {
         setShowSettings(true)
         return
       }
+      const settings = await window.scribe.settings.get()
       const recorder = new MicRecorder((chunk) => window.scribe.recording.sendAudio(chunk))
-      await recorder.start()
+      const capture = await recorder.start(settings.captureSystemAudio)
       recorderRef.current = recorder
       setRecordingId(current.id)
-      setBanner(null)
+      setHearingSystem(capture.systemAudio)
+      if (settings.captureSystemAudio && !capture.systemAudio) {
+        setBanner(
+          'Recording mic only — to hear the other side of calls, allow Screen & System Audio Recording for Scribe in System Settings → Privacy & Security'
+        )
+      } else {
+        setBanner(null)
+      }
     } catch (error) {
       await window.scribe.recording.stop().catch(() => null)
       setBanner(error instanceof Error ? error.message : String(error))
@@ -190,6 +207,7 @@ export default function App(): React.JSX.Element {
     await recorderRef.current?.stop()
     recorderRef.current = null
     setRecordingId(null)
+    setHearingSystem(false)
     const finalized = await window.scribe.recording.stop()
     if (finalized && meetingRef.current?.id === finalized.id) {
       setMeeting(finalized)
@@ -272,6 +290,7 @@ export default function App(): React.JSX.Element {
           <MeetingView
             meeting={meeting}
             isRecording={recordingId === meeting.id}
+            hearingSystem={hearingSystem}
             recordSeconds={recordSeconds}
             enhancing={enhancing}
             enhanceBuffer={enhanceBuffer}

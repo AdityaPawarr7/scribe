@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type {
   ChatTurn,
   ConnectionTestResult,
+  VoiceProfileStatus,
   Meeting,
   MeetingSummary,
   ModelDownloadProgress,
@@ -22,7 +23,9 @@ const EVENT_CHANNELS = [
   'meeting:titled',
   'chat:delta',
   'chat:done',
-  'chat:error'
+  'chat:error',
+  'pulse:new',
+  'profile:updated'
 ] as const
 
 export type EventChannel = (typeof EVENT_CHANNELS)[number]
@@ -49,6 +52,10 @@ const api = {
   settings: {
     get: (): Promise<Settings> => ipcRenderer.invoke('settings:get'),
     set: (patch: Partial<Settings>): Promise<Settings> => ipcRenderer.invoke('settings:set', patch)
+  },
+  profile: {
+    status: (): Promise<VoiceProfileStatus> => ipcRenderer.invoke('profile:status'),
+    open: (): Promise<void> => ipcRenderer.invoke('profile:open')
   },
   chat: {
     ask: (question: string, history: ChatTurn[]): Promise<void> =>
