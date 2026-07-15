@@ -4,11 +4,10 @@ interface Props {
 }
 
 /**
- * The Scribe mark: a cluster of grain silhouettes forming one rosette —
- * separate grains, stronger together.
+ * The Scribe mark: a fountain-pen nib — the scribe's oldest tool.
+ * Breather hole and slit are knocked out of the solid form.
  */
 export default function Logo({ size = 28, className }: Props): React.JSX.Element {
-  const grains = 7
   return (
     <svg
       width={size}
@@ -19,17 +18,18 @@ export default function Logo({ size = 28, className }: Props): React.JSX.Element
       aria-label="Scribe logo"
       fill="currentColor"
     >
-      {Array.from({ length: grains }, (_, i) => {
-        const angle = (360 / grains) * i
-        return (
-          <path
-            key={i}
-            transform={`rotate(${angle}) translate(0 -24)`}
-            d="M0,-20 C8,-13 9,10 0,20 C-9,10 -8,-13 0,-20 Z"
-          />
-        )
-      })}
-      <circle r="7.5" />
+      <path
+        fillRule="evenodd"
+        d="M0,-42
+           C 22,-34 30,-10 25,12
+           C 21,28 12,37 0,44
+           C -12,37 -21,28 -25,12
+           C -30,-10 -22,-34 0,-42
+           Z
+           M0,-1.5 a 5.5,5.5 0 1,0 0,11 a 5.5,5.5 0 1,0 0,-11
+           Z
+           M-1.3,12.5 L1.3,12.5 L1.3,36 L0,39 L-1.3,36 Z"
+      />
     </svg>
   )
 }

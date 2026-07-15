@@ -306,7 +306,7 @@ export default function App(): React.JSX.Element {
               <Logo size={72} />
             </div>
             <h1>Scribe</h1>
-            <p>Open-source meeting notes. Record, transcribe locally, enhance with the model of your choice.</p>
+            <p>Open-source meeting notes. Recorded, transcribed, and written on your Mac.</p>
             <button className="primary" onClick={() => void createMeeting()}>
               New meeting
             </button>

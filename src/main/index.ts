@@ -286,6 +286,14 @@ ipcMain.handle('whisper:downloadModel', async () => {
 app.whenReady().then(() => {
   migrateOldData()
   nativeTheme.themeSource = loadSettings().theme
+  // dev launches don't carry the bundle icon — set the dock icon by hand
+  if (!app.isPackaged && process.platform === 'darwin') {
+    try {
+      app.dock?.setIcon(join(app.getAppPath(), 'build/dock-icon.png'))
+    } catch {
+      // cosmetic only
+    }
+  }
   createWindow()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

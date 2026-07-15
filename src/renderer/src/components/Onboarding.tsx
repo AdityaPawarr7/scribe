@@ -108,8 +108,8 @@ export default function Onboarding(props: Props): React.JSX.Element {
             </div>
             <h1>Welcome to Scribe</h1>
             <p className="onboarding-tagline">
-              Open-source meeting notes. Like the grains in the logo — your rough notes and the
-              transcript are stronger together.
+              Open-source meeting notes, written on your Mac. Faithful to every word — loyal
+              only to you.
             </p>
             <div className="onboarding-features">
               <div className="feature">

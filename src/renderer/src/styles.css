@@ -271,8 +271,9 @@ button {
 .meeting-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 14px 20px 10px;
+  gap: 10px;
+  height: 58px;
+  padding: 0 20px;
   border-bottom: 1px solid var(--stroke);
   background: var(--glass-1);
   -webkit-app-region: drag;
@@ -291,7 +292,7 @@ button {
   border: none;
   outline: none;
   color: var(--text);
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 650;
 }
 
@@ -354,13 +355,13 @@ button {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  padding: 12px 20px 20px;
+  padding: 18px 28px 22px;
 }
 
 .tabs {
   display: flex;
   gap: 4px;
-  margin-bottom: 10px;
+  margin: 0 auto 16px;
   background: var(--glass-1);
   border: 1px solid var(--stroke);
   border-radius: 999px;
@@ -454,8 +455,13 @@ button {
 }
 
 .transcript-title {
-  padding: 12px 16px;
+  height: 44px;
+  padding: 0 16px;
+  font-size: 12px;
   font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -686,7 +692,7 @@ button {
   background: var(--sheet);
   border: 1px solid var(--stroke-strong);
   border-radius: 24px;
-  padding: 32px 36px 56px;
+  padding: 32px 36px 84px;
   -webkit-app-region: no-drag;
   box-shadow:
     var(--glass-highlight),
@@ -722,14 +728,19 @@ button {
 
 .grain-hero {
   align-self: center;
+  margin-top: 6px;
   color: var(--accent);
-  animation: grain-spin 32s linear infinite;
+  animation: grain-spin 7s ease-in-out infinite;
   filter: drop-shadow(0 0 24px color-mix(in srgb, var(--accent) 40%, transparent));
 }
 
 @keyframes grain-spin {
-  to {
-    transform: rotate(360deg);
+  0%,
+  100% {
+    transform: rotate(-6deg) translateY(0);
+  }
+  50% {
+    transform: rotate(6deg) translateY(-5px);
   }
 }
 
@@ -1307,7 +1318,7 @@ b,
   text-align: center;
   color: var(--text-dim);
   font-size: 12px;
-  padding: 0 0 10px;
+  padding: 0 0 8px;
 }
 
 /* appearance controls */

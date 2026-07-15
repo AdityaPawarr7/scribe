@@ -6,3 +6,4 @@ dist/
 .env
 release/
 build/icon-1024.png
+!build/dock-icon.png
