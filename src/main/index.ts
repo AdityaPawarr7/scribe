@@ -39,10 +39,14 @@ let activeRecording: RecordingSession | null = null
 const activeEnhancements = new Map<string, { cancel: () => void }>()
 
 // ---- pulse: periodic in-call insights ----
-const PULSE_INTERVAL_MS = 5 * 60 * 1000
+const PULSE_FIRST_MS = 2 * 60 * 1000 // first insights arrive early…
+const PULSE_EVERY_MS = 5 * 60 * 1000 // …then settle into the 5-minute rhythm
+const PULSE_TICK_MS = 20 * 1000
 const PULSE_MIN_NEW_SEGMENTS = 3
 let pulseTimer: ReturnType<typeof setInterval> | null = null
 let pulseCursor = 0 // transcript segments already covered by a pulse
+let pulseStartedAt = 0
+let lastPulseAt = 0
 let pulseBusy = false
 
 async function runPulse(meetingId: string): Promise<void> {
@@ -51,6 +55,7 @@ async function runPulse(meetingId: string): Promise<void> {
   if (!meeting || meeting.transcript.length - pulseCursor < PULSE_MIN_NEW_SEGMENTS) return
   pulseBusy = true
   pulseCursor = meeting.transcript.length
+  lastPulseAt = Date.now()
   try {
     const pulse = await generatePulse(meeting)
     if (pulse) {
@@ -69,8 +74,14 @@ async function runPulse(meetingId: string): Promise<void> {
 function startPulseLoop(meetingId: string): void {
   stopPulseLoop()
   pulseCursor = 0
+  pulseStartedAt = Date.now()
+  lastPulseAt = 0
   if (!loadSettings().livePulse) return
-  pulseTimer = setInterval(() => void runPulse(meetingId), PULSE_INTERVAL_MS)
+  pulseTimer = setInterval(() => {
+    const due =
+      lastPulseAt === 0 ? pulseStartedAt + PULSE_FIRST_MS : lastPulseAt + PULSE_EVERY_MS
+    if (Date.now() >= due) void runPulse(meetingId)
+  }, PULSE_TICK_MS)
 }
 
 function stopPulseLoop(): void {

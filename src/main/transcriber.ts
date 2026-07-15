@@ -6,8 +6,8 @@ import { loadSettings, resolveWhisperBinary, resolveWhisperModel } from './setti
 import type { TranscriptSegment } from '@shared/types'
 
 export const SAMPLE_RATE = 16000
-/** transcribe in ~15s chunks so the transcript feels live */
-const CHUNK_SECONDS = 15
+/** transcribe in ~8s chunks so the transcript feels live */
+const CHUNK_SECONDS = 8
 const MIN_CHUNK_SAMPLES = SAMPLE_RATE // ignore chunks under 1s
 
 export function writeWav(samples: Int16Array, path: string): void {
@@ -30,17 +30,22 @@ export function writeWav(samples: Int16Array, path: string): void {
   writeFileSync(path, buffer)
 }
 
-function runWhisper(wavPath: string): Promise<string> {
+function runWhisper(wavPath: string, context: string): Promise<string> {
   const settings = loadSettings()
   const binary = resolveWhisperBinary(settings)
   const model = resolveWhisperModel(settings)
   if (!binary) return Promise.reject(new Error('whisper-cli not found — set its path in Settings or `brew install whisper-cpp`'))
   if (!model) return Promise.reject(new Error('Whisper model not found — download it from Settings'))
 
+  const args = ['-m', model, '-f', wavPath, '-np', '-nt', '-l', settings.language || 'en', '--suppress-nst']
+  // feeding the tail of the transcript back as a prompt keeps names, casing,
+  // and sentence flow coherent across chunk boundaries
+  if (context) args.push('--prompt', context)
+
   return new Promise((resolve, reject) => {
     execFile(
       binary,
-      ['-m', model, '-f', wavPath, '-np', '-nt', '-l', settings.language || 'en'],
+      args,
       { maxBuffer: 16 * 1024 * 1024, timeout: 120_000 },
       (error, stdout) => {
         if (error) reject(error)
@@ -55,7 +60,7 @@ function cleanTranscription(raw: string): string {
     .split('\n')
     .map((line) => line.trim())
     .filter((line) => line && !/^\[?[_A-Z ]*BLANK[_A-Z ]*AUDIO\]?$/i.test(line))
-    .map((line) => line.replace(/\[BLANK_AUDIO\]|\[MUSIC\]|\[SILENCE\]|\(.*?applause.*?\)/gi, '').trim())
+    .map((line) => line.replace(/\[BLANK_AUDIO\]|\[MUSIC\]|\[SILENCE\]|\(.*?applause.*?\)|[♪♫♬]+/gi, '').trim())
     .filter(Boolean)
     .join(' ')
     .trim()
@@ -71,6 +76,7 @@ export class RecordingSession {
   private transcribedSamples = 0
   private busy = false
   private stopped = false
+  private context = '' // rolling tail of what we've heard, for whisper's prompt
   readonly startedAt = Date.now()
 
   constructor(
@@ -122,8 +128,9 @@ export class RecordingSession {
     const wavPath = join(app.getPath('temp'), `scribe-chunk-${this.meetingId}-${start}.wav`)
     try {
       writeWav(this.takeSamples(start, end), wavPath)
-      const text = cleanTranscription(await runWhisper(wavPath))
+      const text = cleanTranscription(await runWhisper(wavPath, this.context))
       if (text) {
+        this.context = (this.context + ' ' + text).slice(-220)
         this.onSegment({ t: Math.round(start / SAMPLE_RATE), text })
       }
     } catch (error) {

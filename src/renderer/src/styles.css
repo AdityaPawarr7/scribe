@@ -1573,3 +1573,143 @@ b,
   flex-shrink: 0;
   justify-self: end;
 }
+
+/* ---- the scribe at work ---- */
+.scribe-at-work {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px 0 4px;
+  color: var(--accent);
+  filter: drop-shadow(0 0 16px color-mix(in srgb, var(--accent) 25%, transparent));
+}
+
+/* the pen never rests */
+.saw-pen-arm {
+  transform-origin: 62px 64px;
+  animation: saw-scribble 0.42s ease-in-out infinite alternate;
+}
+
+@keyframes saw-scribble {
+  from {
+    transform: rotate(-3.5deg);
+  }
+  to {
+    transform: rotate(4.5deg);
+  }
+}
+
+/* gentle nod while writing; straightens for the glasses beat */
+.saw-head {
+  transform-origin: 62px 58px;
+  animation: saw-nod 10s ease-in-out infinite;
+}
+
+@keyframes saw-nod {
+  0%, 38% { transform: rotate(2deg); }
+  10%, 28% { transform: rotate(3.4deg); }
+  46%, 58% { transform: rotate(-1.5deg); } /* looks up, adjusts glasses */
+  66%, 78% { transform: rotate(2.6deg); }
+  84%, 94% { transform: rotate(0.5deg); } /* the wipe */
+  100% { transform: rotate(2deg); }
+}
+
+/* glasses get a tiny push when the hand reaches them */
+.saw-glasses {
+  animation: saw-glasses-push 10s ease-in-out infinite;
+}
+
+@keyframes saw-glasses-push {
+  0%, 47%, 59%, 100% { transform: translateY(0); }
+  50%, 55% { transform: translateY(-1.6px); }
+}
+
+/* free arm: cross-fade between rest / glasses / brow-wipe poses */
+.saw-arm { animation-duration: 10s; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
+.saw-arm-rest { animation-name: saw-pose-rest; }
+.saw-arm-glasses { animation-name: saw-pose-glasses; opacity: 0; }
+.saw-arm-wipe { animation-name: saw-pose-wipe; opacity: 0; transform-origin: 58px 66px; }
+
+@keyframes saw-pose-rest {
+  0%, 44%, 62%, 80%, 100% { opacity: 1; }
+  48%, 58% { opacity: 0; }
+  84%, 96% { opacity: 0; }
+}
+
+@keyframes saw-pose-glasses {
+  0%, 44%, 62%, 100% { opacity: 0; }
+  48%, 58% { opacity: 1; }
+}
+
+@keyframes saw-pose-wipe {
+  0%, 80%, 100% { opacity: 0; transform: rotate(0); }
+  84% { opacity: 1; transform: rotate(-4deg); }
+  88% { opacity: 1; transform: rotate(7deg); } /* the swipe across the brow */
+  92% { opacity: 1; transform: rotate(-3deg); }
+  96% { opacity: 0; transform: rotate(0); }
+}
+
+/* sweat: beads up, is wiped away, falls */
+.saw-sweat { opacity: 0; }
+.saw-sweat1 { animation: saw-sweat-fall 10s ease-in infinite; }
+.saw-sweat2 { animation: saw-sweat-fall 10s ease-in infinite; animation-delay: 0.35s; }
+
+@keyframes saw-sweat-fall {
+  0%, 76% { opacity: 0; transform: translateY(0); }
+  80%, 86% { opacity: 0.9; transform: translateY(0); }
+  95% { opacity: 0; transform: translateY(13px); }
+  100% { opacity: 0; }
+}
+
+/* coffee steam + the page filling with ink */
+.saw-steam {
+  animation: saw-steam-rise 2.6s ease-in-out infinite;
+  transform-origin: 27px 82px;
+}
+
+@keyframes saw-steam-rise {
+  0%, 100% { opacity: 0.25; transform: translateY(0); }
+  50% { opacity: 0.8; transform: translateY(-2px); }
+}
+
+.saw-ink { opacity: 0.25; }
+.saw-ink1 { animation: saw-ink-write 3.6s linear infinite; }
+.saw-ink2 { animation: saw-ink-write 3.6s linear infinite 1.2s; }
+.saw-ink3 { animation: saw-ink-write 3.6s linear infinite 2.4s; }
+
+@keyframes saw-ink-write {
+  0%, 20% { opacity: 0.25; }
+  30%, 70% { opacity: 0.95; }
+  85%, 100% { opacity: 0.25; }
+}
+
+.saw-caption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 2px;
+  font-size: 10.5px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.saw-caption-line {
+  width: 26px;
+  height: 1px;
+  background: var(--stroke-strong);
+}
+
+.pulse-teaser {
+  margin: 6px 14px 4px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .saw-pen-arm, .saw-head, .saw-glasses, .saw-arm, .saw-sweat, .saw-steam, .saw-ink {
+    animation: none !important;
+  }
+  .saw-arm-glasses, .saw-arm-wipe { opacity: 0 !important; }
+}

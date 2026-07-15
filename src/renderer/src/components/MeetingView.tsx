@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { marked } from 'marked'
 import type { Meeting } from '../env'
 import ModelSelect from './ModelSelect'
+import ScribeAtWork from './ScribeAtWork'
 
 /** Quick model switcher for the header — persists straight to settings. */
 function HeaderModelPicker(): React.JSX.Element {
@@ -198,14 +199,19 @@ export default function MeetingView(props: Props): React.JSX.Element {
               Transcript
               {props.isRecording && <span className="live-pill">LIVE</span>}
             </div>
-            {meeting.pulses.length > 0 && (
+            {props.isRecording && <ScribeAtWork />}
+            {meeting.pulses.length > 0 ? (
               <PulseCard pulse={meeting.pulses[meeting.pulses.length - 1]} count={meeting.pulses.length} />
+            ) : (
+              props.isRecording && (
+                <div className="pulse-teaser">✦ Pulse is listening — first insights ~2 min in</div>
+              )
             )}
             <div className="transcript-scroll">
               {meeting.transcript.length === 0 && (
                 <div className="transcript-empty">
                   {props.isRecording
-                    ? 'Listening… first text appears after ~15s.'
+                    ? 'Listening… first words land in seconds.'
                     : 'No transcript yet. Hit Record to capture this meeting.'}
                 </div>
               )}
